@@ -747,7 +747,12 @@
 
     </div>
 
-    <script>
+    <script type="module">
+      import { 
+          auth, db, googleProvider, signInWithPopup, onAuthStateChanged, 
+          collection, doc, setDoc, getDoc, onSnapshot, query, where, orderBy, addDoc, serverTimestamp 
+      } from './firebase.ts';
+
       // --- Logic ---
       (function() {
         const splashText = "Nilechat";
@@ -982,25 +987,6 @@
             }
         };
 
-        window.login = function() {
-            enterApp();
-        };
-
-        window.signup = function() {
-            let name = document.getElementById("reg-name").value;
-            let age = document.getElementById("reg-age").value;
-
-            if(name.trim() === "" || age.trim() === ""){
-                alert("يرجى ملء الحقول");
-                return;
-            }
-            
-            userProfile.name = name;
-            userProfile.age = age;
-            
-            enterApp();
-        };
-
         function enterApp() {
             showPage('app-container');
             renderRooms();
@@ -1021,16 +1007,122 @@
         let isPrivateMode = false;
         let onlineRooms = [];
         let myRooms = [];
+        let privateConversations = [];
+        let activePrivateChatId = null;
         
         // User Profile State
         let userProfile = {
-          uid: 'me-' + Math.random().toString(36).substr(2, 9),
-          name: translations.ar.defaultUserName,
+          uid: '',
+          name: '',
           age: '',
           bio: '',
           avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
           showRoomsOnProfile: true
         };
+
+        // Firebase Auth Listener
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (userDoc.exists()) {
+              userProfile = userDoc.data();
+            } else {
+              // New user from Google Login
+              userProfile = {
+                uid: user.uid,
+                name: user.displayName || translations.ar.defaultUserName,
+                age: '',
+                bio: '',
+                avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
+                showRoomsOnProfile: true
+              };
+              await setDoc(doc(db, 'users', user.uid), userProfile);
+            }
+            enterApp();
+            setupRealtimeListeners();
+          } else {
+            showPage('auth');
+          }
+        });
+
+        function setupRealtimeListeners() {
+          // Listen for Rooms
+          onSnapshot(collection(db, 'rooms'), (snapshot) => {
+            onlineRooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            myRooms = onlineRooms.filter(r => r.creatorUid === userProfile.uid);
+            renderRooms();
+          });
+
+          // Listen for Private Messages
+          const q = query(
+            collection(db, 'privateMessages'),
+            where('participants', 'array-contains', userProfile.uid),
+            orderBy('timestamp', 'asc')
+          );
+          onSnapshot(q, (snapshot) => {
+            const allMsgs = snapshot.docs.map(doc => doc.data());
+            // Group by conversation
+            const convs = {};
+            allMsgs.forEach(msg => {
+              const otherUid = msg.fromUid === userProfile.uid ? msg.toUid : msg.fromUid;
+              if (!convs[otherUid]) {
+                convs[otherUid] = { user: { uid: otherUid }, messages: [] };
+              }
+              convs[otherUid].messages.push({
+                ...msg,
+                sender: msg.fromUid === userProfile.uid ? 'me' : 'other'
+              });
+            });
+            
+            // Fetch user profiles for conversations
+            Object.keys(convs).forEach(async (uid) => {
+              if (!convs[uid].user.name) {
+                const uDoc = await getDoc(doc(db, 'users', uid));
+                if (uDoc.exists()) {
+                  convs[uid].user = uDoc.data();
+                  renderInbox();
+                  if (activePrivateChatId === uid) renderPrivateMessages();
+                }
+              }
+            });
+
+            privateConversations = Object.values(convs);
+            renderInbox();
+            if (activePrivateChatId) renderPrivateMessages();
+          });
+        }
+
+        async function login() {
+          try {
+            await signInWithPopup(auth, googleProvider);
+          } catch (error) {
+            console.error("Login error:", error);
+          }
+        }
+        window.login = login;
+
+        async function signup() {
+          const name = document.getElementById('reg-name').value.trim();
+          const age = document.getElementById('reg-age').value.trim();
+          if (!name) return;
+          
+          try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+            userProfile = {
+              uid: user.uid,
+              name: name,
+              age: age,
+              bio: '',
+              avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
+              showRoomsOnProfile: true
+            };
+            await setDoc(doc(db, 'users', user.uid), userProfile);
+          } catch (error) {
+            console.error("Signup error:", error);
+          }
+        }
+        window.signup = signup;
         let isDarkMode = false;
         let currentFontSize = 14;
         let cropperInstance = null;
@@ -1234,14 +1326,33 @@
           });
         }
 
+        function switchViewMode(mode) {
+          viewMode = mode;
+          const t = translations.ar;
+          const homeTitle = document.getElementById("home-title");
+          
+          if (mode === 'online') {
+            buttons.viewAll.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-blue-600 border-blue-600 text-white";
+            buttons.viewMy.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+            if (homeTitle) homeTitle.innerText = t.availableRooms;
+          } else {
+            buttons.viewMy.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-blue-600 border-blue-600 text-white";
+            buttons.viewAll.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+            if (homeTitle) homeTitle.innerText = t.myRoomsTitle;
+          }
+          renderRooms();
+        }
+
+        let roomMessagesUnsubscribe = null;
+
         function renderMessages(shouldAnimateLast = false) {
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
           if (!room) return;
           chatMessages.innerHTML = '';
-          room.messages.forEach((index_msg, index) => {
-            const msg = index_msg;
+          const msgs = room.messages || [];
+          msgs.forEach((msg, index) => {
             const div = document.createElement('div');
-            const isLast = index === room.messages.length - 1;
+            const isLast = index === msgs.length - 1;
             const animationClass = (isLast && shouldAnimateLast) ? 'message-appear' : '';
             
             if (msg.isWelcome) {
@@ -1255,9 +1366,10 @@
               return;
             }
 
-            div.className = `flex items-end gap-2 ${animationClass} group ${msg.sender === 'me' ? 'justify-start flex-row-reverse' : 'justify-end flex-row'}`;
+            const isMe = msg.senderUid === userProfile.uid;
+            div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'justify-start flex-row-reverse' : 'justify-end flex-row'}`;
             
-            const senderInfo = msg.sender === 'me' ? userProfile : (msg.senderInfo || {
+            const senderInfo = isMe ? userProfile : (msg.senderInfo || {
               uid: 'other',
               name: translations.ar.otherUser,
               avatar: 'https://i.pinimg.com/736x/92/f8/f9/92f8f92a91bf7de670dddb7b1171a250.jpg',
@@ -1265,16 +1377,16 @@
               bio: translations.ar.defaultBio
             });
 
-            const avatarHtml = msg.sender === 'me' ? '' : `
+            const avatarHtml = isMe ? '' : `
               <img src="${senderInfo.avatar}" 
                    class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-slate-200 cursor-pointer hover:scale-110 transition-transform"
-                   onclick="window.handleUserClick(${JSON.stringify(senderInfo).replace(/"/g, '&quot;')}, '${msg.sender}', ${!!msg.isWelcome})">
+                   onclick="window.handleUserClick(${JSON.stringify(senderInfo).replace(/"/g, '&quot;')}, 'other', ${!!msg.isWelcome})">
             `;
 
             div.innerHTML = `
               ${avatarHtml}
               <div class="message-bubble max-w-[85%] p-5 rounded-3xl text-xl font-bold relative cursor-pointer hover:opacity-90 transition-opacity ${
-                msg.sender === 'me'
+                isMe
                   ? 'bg-blue-600 text-white rounded-br-none'
                   : 'bg-white text-slate-800 border border-slate-100 rounded-bl-none shadow-sm'
               }">
@@ -1284,7 +1396,7 @@
                     ${msg.isEdited ? `<span class="text-[10px] opacity-70 block mt-1">(معدلة)</span>` : ''}
                   </p>
                 </div>
-                <span class="text-xs block mt-2 ${msg.sender === 'me' ? 'text-blue-100' : 'text-slate-400'}">
+                <span class="text-xs block mt-2 ${isMe ? 'text-blue-100' : 'text-slate-400'}">
                   ${msg.time}
                 </span>
               </div>
@@ -1293,10 +1405,10 @@
             const bubble = div.querySelector('.message-bubble');
             
             // Handle click to show profile
-            bubble.onclick = () => window.handleUserClick(senderInfo, msg.sender, !!msg.isWelcome);
+            bubble.onclick = () => window.handleUserClick(senderInfo, isMe ? 'me' : 'other', !!msg.isWelcome);
 
             // Handle long press and right click for deletion
-            if (msg.sender === 'me') {
+            if (isMe) {
               let longPressTimer;
               const handleStart = (e) => {
                 longPressTimer = setTimeout(() => {
@@ -1323,9 +1435,9 @@
         }
 
         // Actions
-        function joinRoom(room) {
+        async function joinRoom(room) {
           // Check if room is full
-          if (room.creator !== 'me' && room.maxMembers && room.members >= room.maxMembers) {
+          if (room.creatorUid !== userProfile.uid && room.maxMembers && room.members >= room.maxMembers) {
             showNotice(translations.ar.roomFull);
             return;
           }
@@ -1335,17 +1447,10 @@
           displays.chatRoomCode.innerText = `#${room.code}`;
           
           // Show members button if creator
-          if (room.creator === 'me') {
+          if (room.creatorUid === userProfile.uid) {
             buttons.viewMembers.classList.remove('hidden');
           } else {
             buttons.viewMembers.classList.add('hidden');
-          }
-
-          // Add me to members list if not already there
-          if (!room.membersList) room.membersList = [];
-          if (!room.membersList.find(m => m.uid === userProfile.uid)) {
-            room.membersList.push({ ...userProfile });
-            room.members = room.membersList.length;
           }
 
           if (room.image) {
@@ -1357,14 +1462,14 @@
             displays.chatRoomIcon.classList.remove('hidden');
           }
 
-          if (room.creator === 'me') {
+          if (room.creatorUid === userProfile.uid) {
             buttons.chatHeader.classList.add('hover:bg-slate-50', 'cursor-pointer');
           } else {
             buttons.chatHeader.classList.remove('hover:bg-slate-50', 'cursor-pointer');
           }
 
           // Handle Muted State
-          if (room.isMuted && room.creator !== 'me') {
+          if (room.isMuted && room.creatorUid !== userProfile.uid) {
             inputs.message.disabled = true;
             inputs.message.placeholder = translations.ar.messagingDisabled;
             buttons.sendMessage.disabled = true;
@@ -1376,44 +1481,63 @@
             buttons.sendMessage.classList.remove('opacity-50', 'cursor-not-allowed');
           }
           
-          renderMessages();
+          // Listen for messages in this room
+          if (roomMessagesUnsubscribe) roomMessagesUnsubscribe();
+          const q = query(
+            collection(db, 'rooms', room.id, 'messages'),
+            orderBy('timestamp', 'asc')
+          );
+          roomMessagesUnsubscribe = onSnapshot(q, (snapshot) => {
+            room.messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderMessages(true);
+          });
+
           showScreen('chat');
         }
 
-        function createRoom() {
+        async function createRoom() {
           const name = inputs.roomName.value.trim();
           if (!name) return;
           const code = displays.roomCode.innerText;
           const welcomeText = translations.ar.welcomeMessage.replace('{name}', name);
           
-          const initialMessages = [
-            { id: 'welcome', text: welcomeText, sender: 'other', time: getTime(), isWelcome: true }
-          ];
           const newRoom = {
-            id: Date.now().toString(),
             name,
             code,
             members: 1,
             maxMembers: parseInt(inputs.roomMaxMembers.value) || 50,
             isPrivate: isPrivateMode,
-            messages: initialMessages,
             welcomeMessage: welcomeText,
-            creator: 'me',
             creatorUid: userProfile.uid,
             isMuted: false,
-            membersList: [{ ...userProfile }],
             image: displays.createRoomImagePreview.src.startsWith('data:') ? displays.createRoomImagePreview.src : null
           };
-          myRooms.unshift(newRoom);
-          onlineRooms.unshift(newRoom);
-          joinRoom(newRoom);
+          
+          try {
+            const roomRef = await addDoc(collection(db, 'rooms'), newRoom);
+            const welcomeMsg = {
+              timestamp: Date.now(),
+              text: welcomeText,
+              senderUid: 'system',
+              time: getTime(),
+              isWelcome: true
+            };
+            await addDoc(collection(db, 'rooms', roomRef.id, 'messages'), welcomeMsg);
+            
+            // Switch to "My Rooms" view automatically so it's visible when returning
+            switchViewMode('my');
+            
+            joinRoom({ id: roomRef.id, ...newRoom });
+          } catch (error) {
+            console.error("Create room error:", error);
+          }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
           if (!room) return;
           
-          if (room.isMuted && room.creator !== 'me') {
+          if (room.isMuted && room.creatorUid !== userProfile.uid) {
             showNotice(translations.ar.messagingDisabled);
             return;
           }
@@ -1421,25 +1545,29 @@
           const text = inputs.message.value.trim();
           if (!text || !activeRoomId) return;
           const msg = {
-            id: Date.now().toString(),
+            timestamp: Date.now(),
             text,
-            sender: 'me',
+            senderUid: userProfile.uid,
             senderInfo: { ...userProfile },
             time: getTime()
           };
-          const updateList = (list) => list.map(r => r.id === activeRoomId ? { ...r, messages: [...r.messages, msg] } : r);
-          onlineRooms = updateList(onlineRooms);
-          myRooms = updateList(myRooms);
-          inputs.message.value = '';
-          inputs.message.focus();
-          renderMessages(true);
+          
+          try {
+            await addDoc(collection(db, 'rooms', activeRoomId, 'messages'), msg);
+            inputs.message.value = '';
+            inputs.message.focus();
+          } catch (error) {
+            console.error("Send message error:", error);
+          }
         }
 
-        function deleteMessage(messageId) {
-          const updateList = (list) => list.map(r => r.id === activeRoomId ? { ...r, messages: r.messages.filter(m => m.id !== messageId) } : r);
-          onlineRooms = updateList(onlineRooms);
-          myRooms = updateList(myRooms);
-          renderMessages();
+        async function deleteMessage(messageId) {
+          if (!activeRoomId) return;
+          try {
+            await deleteDoc(doc(db, 'rooms', activeRoomId, 'messages', messageId));
+          } catch (error) {
+            console.error("Delete message error:", error);
+          }
         }
         window.deleteMessage = deleteMessage;
 
@@ -1478,11 +1606,17 @@
           displays.fontPreviewBox.style.fontSize = `${size}px`;
         }
 
-        function saveSettings() {
+        async function saveSettings() {
           // Save Profile
           userProfile.name = inputs.userName.value || userProfile.name;
           userProfile.age = inputs.userAge.value || userProfile.age;
           userProfile.bio = inputs.userBio.value || userProfile.bio;
+          
+          try {
+            await setDoc(doc(db, 'users', userProfile.uid), userProfile);
+          } catch (error) {
+            console.error("Save settings error:", error);
+          }
           
           // Save Font Size
           currentFontSize = inputs.fontSize.value;
@@ -1853,18 +1987,8 @@
         }
 
         // Event Listeners
-        buttons.viewAll.onclick = () => {
-          viewMode = 'online';
-          buttons.viewAll.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-blue-600 border-blue-600 text-white";
-          buttons.viewMy.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
-          renderRooms();
-        };
-        buttons.viewMy.onclick = () => {
-          viewMode = 'my';
-          buttons.viewMy.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-blue-600 border-blue-600 text-white";
-          buttons.viewAll.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
-          renderRooms();
-        };
+        buttons.viewAll.onclick = () => switchViewMode('online');
+        buttons.viewMy.onclick = () => switchViewMode('my');
         buttons.goCreate.onclick = () => {
           inputs.roomName.value = '';
           displays.roomCode.innerText = generateCode();
@@ -1999,12 +2123,14 @@
             return;
           }
 
-          privateConversations.sort((a, b) => {
+          privateConversations.filter(c => c.messages.length > 0).sort((a, b) => {
             const lastA = a.messages[a.messages.length - 1];
             const lastB = b.messages[b.messages.length - 1];
-            return new Date(lastB.time) - new Date(lastA.time);
+            return (lastB.timestamp || 0) - (lastA.timestamp || 0);
           }).forEach(conv => {
             const lastMsg = conv.messages[conv.messages.length - 1];
+            if (!lastMsg) return;
+            
             const isMe = conv.user.uid === userProfile.uid;
             const div = document.createElement('div');
             div.className = "flex items-center gap-4 p-4 bg-white border border-slate-100 rounded-3xl hover:bg-slate-50 transition-all cursor-pointer active:scale-95 shadow-sm";
@@ -2039,12 +2165,6 @@
           displays.privateChatName.innerText = isMe ? translations.ar.messageYourself : user.name;
           document.getElementById('private-chat-status').classList.toggle('hidden', isMe);
           
-          let conv = privateConversations.find(c => c.user.uid === user.uid);
-          if (!conv) {
-            conv = { user, messages: [] };
-            privateConversations.push(conv);
-          }
-          
           renderPrivateMessages();
           showScreen('privateChat');
           setTimeout(() => {
@@ -2052,23 +2172,27 @@
           }, 100);
         }
 
-        function renderPrivateMessages() {
+        function renderPrivateMessages(shouldAnimateLast = false) {
           const conv = privateConversations.find(c => c.user.uid === activePrivateChatId);
           if (!conv) return;
 
           displays.privateChatMessages.innerHTML = '';
-          conv.messages.forEach(msg => {
+          conv.messages.forEach((msg, index) => {
             const div = document.createElement('div');
-            div.className = `flex items-end gap-2 group ${msg.sender === 'me' ? 'justify-start flex-row-reverse' : 'justify-end flex-row'}`;
+            const isLast = index === conv.messages.length - 1;
+            const animationClass = (isLast && shouldAnimateLast) ? 'message-appear' : '';
+            const isMe = msg.fromUid === userProfile.uid;
+            
+            div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'justify-start flex-row-reverse' : 'justify-end flex-row'}`;
             
             div.innerHTML = `
               <div class="message-bubble max-w-[85%] p-5 rounded-3xl text-xl font-bold relative cursor-pointer hover:opacity-90 transition-opacity ${
-                msg.sender === 'me'
+                isMe
                   ? 'bg-blue-600 text-white rounded-br-none'
                   : 'bg-white text-slate-800 border border-slate-100 rounded-bl-none shadow-sm'
               }">
                 <p class="text-right leading-relaxed">${msg.text}</p>
-                <span class="text-xs block mt-2 ${msg.sender === 'me' ? 'text-blue-100' : 'text-slate-400'}">
+                <span class="text-xs block mt-2 ${isMe ? 'text-blue-100' : 'text-slate-400'}">
                   ${msg.time}
                 </span>
               </div>
@@ -2078,36 +2202,24 @@
           displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
         }
 
-        function sendPrivateMessage() {
+        async function sendPrivateMessage() {
           const text = inputs.privateMessage.value.trim();
           if (!text || !activePrivateChatId) return;
 
-          const conv = privateConversations.find(c => c.user.uid === activePrivateChatId);
-          if (!conv) return;
-
           const msg = {
-            id: Date.now(),
+            timestamp: Date.now(),
             text,
-            sender: 'me',
+            fromUid: userProfile.uid,
+            toUid: activePrivateChatId,
+            participants: [userProfile.uid, activePrivateChatId],
             time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
           };
 
-          conv.messages.push(msg);
-          inputs.privateMessage.value = '';
-          renderPrivateMessages();
-          
-          // Simulate reply if not messaging self
-          if (activePrivateChatId !== userProfile.uid) {
-            setTimeout(() => {
-              const reply = {
-                id: Date.now() + 1,
-                text: translations.ar.hello + " " + userProfile.name + "!",
-                sender: 'other',
-                time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
-              };
-              conv.messages.push(reply);
-              if (activePrivateChatId === conv.user.uid) renderPrivateMessages();
-            }, 1000);
+          try {
+            await addDoc(collection(db, 'privateMessages'), msg);
+            inputs.privateMessage.value = '';
+          } catch (error) {
+            console.error("Send private message error:", error);
           }
         }
 
