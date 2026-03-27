@@ -510,7 +510,7 @@
           </div>
         </div>
 
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 custom-scrollbar">
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 custom-scrollbar scroll-smooth">
           <!-- Messages will be injected here -->
         </div>
 
@@ -554,7 +554,7 @@
           </button>
         </div>
 
-        <div id="private-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 custom-scrollbar">
+        <div id="private-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 custom-scrollbar scroll-smooth">
           <!-- Messages will be injected here -->
         </div>
 
@@ -748,10 +748,182 @@
     </div>
 
     <script type="module">
-      import { 
-          auth, db, googleProvider, signInWithPopup, onAuthStateChanged, 
-          collection, doc, setDoc, getDoc, onSnapshot, query, where, orderBy, addDoc, serverTimestamp 
-      } from './firebase.ts';
+      // State
+      let currentStep = 'home';
+      let viewMode = 'online';
+      let activeRoomId = null;
+      let isPrivateMode = false;
+      let onlineRooms = [];
+      let myRooms = [];
+      let privateConversations = [];
+      let activePrivateChatId = null;
+      let selectedUserProfile = null;
+      
+      // User Profile State
+      let userProfile = {
+        uid: '',
+        name: '',
+        age: '',
+        bio: '',
+        avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
+        showRoomsOnProfile: true
+      };
+
+      // --- Mock Firebase (Local State) ---
+      const mockDb = {
+        users: JSON.parse(localStorage.getItem('nc_users') || '{}'),
+        rooms: JSON.parse(localStorage.getItem('nc_rooms') || '[]'),
+        privateMessages: JSON.parse(localStorage.getItem('nc_pms') || '[]')
+      };
+
+      function saveMockDb() {
+        localStorage.setItem('nc_users', JSON.stringify(mockDb.users));
+        localStorage.setItem('nc_rooms', JSON.stringify(mockDb.rooms));
+        localStorage.setItem('nc_pms', JSON.stringify(mockDb.privateMessages));
+      }
+
+      const auth = {
+        currentUser: JSON.parse(localStorage.getItem('nc_current_user') || 'null')
+      };
+
+      const listeners = [];
+      function onSnapshot(ref, callback) {
+        const listener = () => {
+          let data = [];
+          if (ref.collection === 'rooms') {
+            data = mockDb.rooms;
+          } else if (ref.collection.includes('/messages')) {
+            const parts = ref.collection.split('/');
+            const room = mockDb.rooms.find(r => r.id === parts[1]);
+            data = room ? (room.messages || []) : [];
+          } else if (ref.collection === 'privateMessages') {
+            data = mockDb.privateMessages.filter(m => m.participants.includes(userProfile.uid));
+          }
+          callback({ 
+            docs: data.map(d => ({ id: d.id, data: () => d })) 
+          });
+        };
+        listeners.push({ ref, callback: listener });
+        listener();
+        return () => {
+          const idx = listeners.findIndex(l => l.callback === listener);
+          if (idx > -1) listeners.splice(idx, 1);
+        };
+      }
+
+      function notifyListeners(collectionPath) {
+        listeners.forEach(l => {
+          if (l.ref.collection === collectionPath || collectionPath.startsWith(l.ref.collection)) {
+            l.callback();
+          }
+        });
+      }
+
+      const db = {};
+      const collection = (db, ...paths) => ({ collection: paths.join('/') });
+      const doc = (db, ...paths) => ({ collection: paths.slice(0, -1).join('/'), id: paths[paths.length - 1] });
+      const query = (col) => col;
+      const where = () => ({});
+      const orderBy = () => ({});
+      
+      async function getDoc(ref) {
+        const data = mockDb[ref.collection][ref.id];
+        return { exists: () => !!data, data: () => data };
+      }
+
+      async function setDoc(ref, data) {
+        mockDb[ref.collection][ref.id] = data;
+        saveMockDb();
+        notifyListeners(ref.collection);
+      }
+
+      async function addDoc(ref, data) {
+        const id = Math.random().toString(36).substr(2, 9);
+        const docData = { id, ...data };
+        if (ref.collection === 'rooms') {
+          mockDb.rooms.unshift(docData);
+        } else if (ref.collection.includes('messages')) {
+          // Handle subcollection messages
+          const parts = ref.collection.split('/');
+          if (parts[0] === 'rooms') {
+            const room = mockDb.rooms.find(r => r.id === parts[1]);
+            if (room) {
+              if (!room.messages) room.messages = [];
+              room.messages.push(docData);
+            }
+          }
+        } else if (ref.collection === 'privateMessages') {
+          mockDb.privateMessages.push(docData);
+        }
+        saveMockDb();
+        notifyListeners(ref.collection);
+        return { id };
+      }
+
+      async function updateDoc(ref, data) {
+        if (ref.collection === 'rooms') {
+          const room = mockDb.rooms.find(r => r.id === ref.id);
+          if (room) Object.assign(room, data);
+        } else if (ref.collection.includes('/messages')) {
+          const parts = ref.collection.split('/');
+          if (parts[0] === 'rooms') {
+            const room = mockDb.rooms.find(r => r.id === parts[1]);
+            if (room && room.messages) {
+              const msg = room.messages.find(m => m.id === ref.id);
+              if (msg) Object.assign(msg, data);
+            }
+          }
+        } else if (ref.collection === 'privateMessages') {
+          const msg = mockDb.privateMessages.find(m => m.id === ref.id);
+          if (msg) Object.assign(msg, data);
+        }
+        saveMockDb();
+        notifyListeners(ref.collection);
+      }
+
+      async function deleteDoc(ref) {
+        if (ref.collection === 'rooms') {
+          mockDb.rooms = mockDb.rooms.filter(r => r.id !== ref.id);
+        } else if (ref.collection.includes('/messages')) {
+          const parts = ref.collection.split('/');
+          if (parts[0] === 'rooms') {
+            const room = mockDb.rooms.find(r => r.id === parts[1]);
+            if (room && room.messages) {
+              room.messages = room.messages.filter(m => m.id !== ref.id);
+            }
+          }
+        } else if (ref.collection === 'privateMessages') {
+          mockDb.privateMessages = mockDb.privateMessages.filter(m => m.id !== ref.id);
+        }
+        saveMockDb();
+        notifyListeners(ref.collection);
+      }
+
+      const authListeners = [];
+      function onAuthStateChanged(auth, callback) {
+        authListeners.push(callback);
+        callback(auth.currentUser);
+        return () => {
+          const idx = authListeners.indexOf(callback);
+          if (idx > -1) authListeners.splice(idx, 1);
+        };
+      }
+
+      function notifyAuthChange() {
+        authListeners.forEach(l => l(auth.currentUser));
+      }
+
+      const googleProvider = {};
+      async function signInWithPopup() {
+        // Mock sign in
+        const mockUser = { uid: 'mock-uid-' + Date.now(), displayName: 'User ' + Math.floor(Math.random() * 1000), photoURL: '' };
+        auth.currentUser = mockUser;
+        localStorage.setItem('nc_current_user', JSON.stringify(mockUser));
+        notifyAuthChange();
+        return { user: mockUser };
+      }
+
+      const serverTimestamp = () => Date.now();
 
       // --- Logic ---
       (function() {
@@ -994,137 +1166,15 @@
 
         setTimeout(() => {
             const splash = document.getElementById("splash");
-            splash.classList.add("fade-out");
+            if (splash) splash.classList.add("fade-out");
             setTimeout(() => {
-                showPage("auth");
+                // Only redirect to auth if we haven't entered the app yet
+                if (currentStep === 'home' && !auth.currentUser) {
+                    showPage("auth");
+                }
             }, 800);
         }, 5000);
 
-        // State
-        let currentStep = 'home';
-        let viewMode = 'online';
-        let activeRoomId = null;
-        let isPrivateMode = false;
-        let onlineRooms = [];
-        let myRooms = [];
-        let privateConversations = [];
-        let activePrivateChatId = null;
-        
-        // User Profile State
-        let userProfile = {
-          uid: '',
-          name: '',
-          age: '',
-          bio: '',
-          avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
-          showRoomsOnProfile: true
-        };
-
-        // Firebase Auth Listener
-        onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
-            if (userDoc.exists()) {
-              userProfile = userDoc.data();
-            } else {
-              // New user from Google Login
-              userProfile = {
-                uid: user.uid,
-                name: user.displayName || translations.ar.defaultUserName,
-                age: '',
-                bio: '',
-                avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
-                showRoomsOnProfile: true
-              };
-              await setDoc(doc(db, 'users', user.uid), userProfile);
-            }
-            enterApp();
-            setupRealtimeListeners();
-          } else {
-            showPage('auth');
-          }
-        });
-
-        function setupRealtimeListeners() {
-          // Listen for Rooms
-          onSnapshot(collection(db, 'rooms'), (snapshot) => {
-            onlineRooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            myRooms = onlineRooms.filter(r => r.creatorUid === userProfile.uid);
-            renderRooms();
-          });
-
-          // Listen for Private Messages
-          const q = query(
-            collection(db, 'privateMessages'),
-            where('participants', 'array-contains', userProfile.uid),
-            orderBy('timestamp', 'asc')
-          );
-          onSnapshot(q, (snapshot) => {
-            const allMsgs = snapshot.docs.map(doc => doc.data());
-            // Group by conversation
-            const convs = {};
-            allMsgs.forEach(msg => {
-              const otherUid = msg.fromUid === userProfile.uid ? msg.toUid : msg.fromUid;
-              if (!convs[otherUid]) {
-                convs[otherUid] = { user: { uid: otherUid }, messages: [] };
-              }
-              convs[otherUid].messages.push({
-                ...msg,
-                sender: msg.fromUid === userProfile.uid ? 'me' : 'other'
-              });
-            });
-            
-            // Fetch user profiles for conversations
-            Object.keys(convs).forEach(async (uid) => {
-              if (!convs[uid].user.name) {
-                const uDoc = await getDoc(doc(db, 'users', uid));
-                if (uDoc.exists()) {
-                  convs[uid].user = uDoc.data();
-                  renderInbox();
-                  if (activePrivateChatId === uid) renderPrivateMessages();
-                }
-              }
-            });
-
-            privateConversations = Object.values(convs);
-            renderInbox();
-            if (activePrivateChatId) renderPrivateMessages();
-          });
-        }
-
-        async function login() {
-          try {
-            await signInWithPopup(auth, googleProvider);
-          } catch (error) {
-            console.error("Login error:", error);
-          }
-        }
-        window.login = login;
-
-        async function signup() {
-          const name = document.getElementById('reg-name').value.trim();
-          const age = document.getElementById('reg-age').value.trim();
-          if (!name) return;
-          
-          try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-            userProfile = {
-              uid: user.uid,
-              name: name,
-              age: age,
-              bio: '',
-              avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
-              showRoomsOnProfile: true
-            };
-            await setDoc(doc(db, 'users', user.uid), userProfile);
-          } catch (error) {
-            console.error("Signup error:", error);
-          }
-        }
-        window.signup = signup;
-        let isDarkMode = false;
-        let currentFontSize = 14;
         let cropperInstance = null;
         let cropperTarget = null; // 'avatar', 'room', 'createRoom'
         let cropperAspectRatio = 1;
@@ -1243,6 +1293,116 @@
         };
         const darkToggleCircle = document.getElementById('dark-toggle-circle');
 
+        // Mock Auth Listener
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            if (mockDb.users[user.uid]) {
+              userProfile = mockDb.users[user.uid];
+            } else {
+              userProfile = {
+                uid: user.uid,
+                name: user.displayName || translations.ar.defaultUserName,
+                age: '',
+                bio: '',
+                avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
+                showRoomsOnProfile: true
+              };
+              mockDb.users[user.uid] = userProfile;
+              saveMockDb();
+            }
+            enterApp();
+            setupRealtimeListeners();
+          } else {
+            showPage('auth');
+          }
+          // Hide splash
+          const splash = document.getElementById("splash");
+          if (splash) splash.classList.add("fade-out");
+        });
+
+        function setupRealtimeListeners() {
+          // Listen for Rooms
+          onSnapshot(collection(db, 'rooms'), (snapshot) => {
+            onlineRooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            myRooms = onlineRooms.filter(r => r.creatorUid === userProfile.uid);
+            renderRooms();
+
+            // If we are currently in a room, update its header info if it changed
+            if (activeRoomId) {
+              const currentRoom = onlineRooms.find(r => r.id === activeRoomId);
+              if (currentRoom) {
+                displays.chatRoomName.innerText = currentRoom.name;
+                if (currentRoom.image) {
+                  displays.chatRoomImage.src = currentRoom.image;
+                  displays.chatRoomImage.classList.remove('hidden');
+                  displays.chatRoomIcon.classList.add('hidden');
+                } else {
+                  displays.chatRoomImage.classList.add('hidden');
+                  displays.chatRoomIcon.classList.remove('hidden');
+                }
+              }
+            }
+          });
+
+          // Listen for Private Messages
+          onSnapshot(collection(db, 'privateMessages'), (snapshot) => {
+            const allMsgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const convs = {};
+            allMsgs.forEach(msg => {
+              const otherUid = msg.fromUid === userProfile.uid ? msg.toUid : msg.fromUid;
+              if (!convs[otherUid]) {
+                const otherUser = mockDb.users[otherUid] || { uid: otherUid, name: translations.ar.otherUser, avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg' };
+                convs[otherUid] = { user: otherUser, messages: [] };
+              }
+              convs[otherUid].messages.push({
+                ...msg,
+                sender: msg.fromUid === userProfile.uid ? 'me' : 'other'
+              });
+            });
+            privateConversations = Object.values(convs);
+            renderInbox();
+            if (activePrivateChatId) renderPrivateMessages(true);
+          });
+        }
+
+        async function login() {
+          try {
+            await signInWithPopup(auth, googleProvider);
+          } catch (error) {
+            console.error("Login error:", error);
+          }
+        }
+        window.login = login;
+
+        async function signup() {
+          const name = document.getElementById('reg-name').value.trim();
+          const age = document.getElementById('reg-age').value.trim();
+          if (!name) return;
+          
+          try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+            userProfile = {
+              uid: user.uid,
+              name: name,
+              age: age,
+              bio: '',
+              avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
+              showRoomsOnProfile: true
+            };
+            await setDoc(doc(db, 'users', user.uid), userProfile);
+          } catch (error) {
+            console.error("Signup error:", error);
+          }
+        }
+        function logout() {
+          auth.currentUser = null;
+          localStorage.removeItem('nc_current_user');
+          location.reload();
+        }
+        window.logout = logout;
+        let isDarkMode = false;
+        let currentFontSize = 14;
         // Utils
         function generateCode() {
           return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -1436,6 +1596,7 @@
 
         // Actions
         async function joinRoom(room) {
+          isPrivateMode = false;
           // Check if room is full
           if (room.creatorUid !== userProfile.uid && room.maxMembers && room.members >= room.maxMembers) {
             showNotice(translations.ar.roomFull);
@@ -1443,6 +1604,19 @@
           }
 
           activeRoomId = room.id;
+          
+          // Add to membersList in mock
+          const dbRoom = mockDb.rooms.find(r => r.id === room.id);
+          if (dbRoom) {
+            if (!dbRoom.membersList) dbRoom.membersList = [];
+            if (!dbRoom.membersList.find(m => m.uid === userProfile.uid)) {
+              dbRoom.membersList.push(userProfile);
+              dbRoom.members = dbRoom.membersList.length;
+              saveMockDb();
+              notifyListeners('rooms');
+            }
+          }
+
           displays.chatRoomName.innerText = room.name;
           displays.chatRoomCode.innerText = `#${room.code}`;
           
@@ -1505,6 +1679,7 @@
             name,
             code,
             members: 1,
+            membersList: [userProfile],
             maxMembers: parseInt(inputs.roomMaxMembers.value) || 50,
             isPrivate: isPrivateMode,
             welcomeMessage: welcomeText,
@@ -1524,10 +1699,21 @@
             };
             await addDoc(collection(db, 'rooms', roomRef.id, 'messages'), welcomeMsg);
             
-            // Switch to "My Rooms" view automatically so it's visible when returning
+            // Reset "Create Room" form
+            inputs.roomName.value = '';
+            inputs.roomMaxMembers.value = '50';
+            displays.createRoomImagePreview.src = 'https://via.placeholder.com/150?text=Room';
+            buttons.typePublic.click();
+            
+            // Switch to "My Rooms" view automatically so it's visible
             switchViewMode('my');
             
-            joinRoom({ id: roomRef.id, ...newRoom });
+            // Show home screen briefly to let user see the room in the list
+            showScreen('home');
+            
+            setTimeout(() => {
+              joinRoom({ id: roomRef.id, ...newRoom });
+            }, 800);
           } catch (error) {
             console.error("Create room error:", error);
           }
@@ -1562,9 +1748,13 @@
         }
 
         async function deleteMessage(messageId) {
-          if (!activeRoomId) return;
           try {
-            await deleteDoc(doc(db, 'rooms', activeRoomId, 'messages', messageId));
+            if (isPrivateMode) {
+              await deleteDoc(doc(db, 'privateMessages', messageId));
+            } else {
+              if (!activeRoomId) return;
+              await deleteDoc(doc(db, 'rooms', activeRoomId, 'messages', messageId));
+            }
           } catch (error) {
             console.error("Delete message error:", error);
           }
@@ -1629,7 +1819,7 @@
 
         function openRoomSettings() {
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
-          if (!room || room.creator !== 'me') return;
+          if (!room || room.creatorUid !== userProfile.uid) return;
           
           inputs.editRoomName.value = room.name;
           inputs.editRoomMaxMembers.value = room.maxMembers || 50;
@@ -1642,12 +1832,15 @@
           showScreen('roomSettings');
         }
 
-        function toggleMuteUsers() {
+        async function toggleMuteUsers() {
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
-          if (!room || room.creator !== 'me') return;
+          if (!room || room.creatorUid !== userProfile.uid) return;
           
-          room.isMuted = !room.isMuted;
-          updateMuteUsersToggle(room.isMuted);
+          try {
+            await updateDoc(doc(db, 'rooms', activeRoomId), { isMuted: !room.isMuted });
+          } catch (error) {
+            console.error("Toggle mute error:", error);
+          }
         }
 
         function updateMuteUsersToggle(isMuted) {
@@ -1661,42 +1854,27 @@
           }
         }
 
-        function saveRoomSettings() {
-          const roomIndexOnline = onlineRooms.findIndex(r => r.id === activeRoomId);
-          const roomIndexMy = myRooms.findIndex(r => r.id === activeRoomId);
+        async function saveRoomSettings() {
+          const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
+          if (!room) return;
           
           const newName = inputs.editRoomName.value.trim();
           if (!newName) return;
 
           const newMaxMembers = parseInt(inputs.editRoomMaxMembers.value) || 50;
+          const finalWelcome = translations.ar.welcomeMessage.replace('{name}', newName);
 
-          const updateRoom = (room) => {
-            let updatedMessages = [...room.messages];
-            const welcomeIdx = updatedMessages.findIndex(m => m.isWelcome);
-            const finalWelcome = translations.ar.welcomeMessage.replace('{name}', newName);
-
-            if (welcomeIdx !== -1) {
-              updatedMessages[welcomeIdx] = { ...updatedMessages[welcomeIdx], text: finalWelcome };
-            } else {
-              updatedMessages.unshift({ id: 'welcome', text: finalWelcome, sender: 'other', time: getTime(), isWelcome: true });
-            }
-
-            return {
-              ...room,
+          try {
+            await updateDoc(doc(db, 'rooms', activeRoomId), {
               name: newName,
               maxMembers: newMaxMembers,
               welcomeMessage: finalWelcome,
-              messages: updatedMessages,
-              isMuted: room.isMuted,
               image: displays.roomSettingsImagePreview.src.startsWith('data:') ? displays.roomSettingsImagePreview.src : room.image
-            };
-          };
-
-          if (roomIndexOnline !== -1) onlineRooms[roomIndexOnline] = updateRoom(onlineRooms[roomIndexOnline]);
-          if (roomIndexMy !== -1) myRooms[roomIndexMy] = updateRoom(myRooms[roomIndexMy]);
-
-          const updatedRoom = roomIndexMy !== -1 ? myRooms[roomIndexMy] : onlineRooms[roomIndexOnline];
-          joinRoom(updatedRoom);
+            });
+            showScreen('chat');
+          } catch (error) {
+            console.error("Save room settings error:", error);
+          }
         }
 
         function showUserProfile(profile) {
@@ -1764,32 +1942,33 @@
 
           displays.roomMembersList.innerHTML = '';
           
-          if (!room.membersList || room.membersList.length === 0) {
-            displays.roomMembersList.innerHTML = `<p class="text-center text-slate-400 py-4">${translations.ar.noRoomsAvailable}</p>`;
-          } else {
-            room.membersList.forEach(member => {
-              const isMe = member.uid === userProfile.uid;
-              const displayInfo = isMe ? userProfile : member;
-              
-              const memberDiv = document.createElement('div');
-              memberDiv.className = "flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer";
-              memberDiv.onclick = () => {
-                closeRoomMembers();
-                showUserProfile(displayInfo);
-              };
-              memberDiv.innerHTML = `
-                <div class="flex items-center gap-3">
-                  <img src="${displayInfo.avatar}" class="w-10 h-10 rounded-full object-cover border border-white">
-                  <div class="text-right">
-                    <p class="font-bold text-slate-800 text-sm">${displayInfo.name}</p>
-                    <p class="text-[10px] text-slate-400 font-bold">${displayInfo.age ? displayInfo.age + ' ' + translations.ar.years : ''}</p>
-                  </div>
+          // In mock mode, ensure current user is at least in the list
+          const members = room.membersList || [];
+          const hasMe = members.some(m => m.uid === userProfile.uid);
+          const displayMembers = hasMe ? members : [userProfile, ...members];
+
+          displayMembers.forEach(member => {
+            const isMe = member.uid === userProfile.uid;
+            const displayInfo = isMe ? userProfile : member;
+            
+            const memberDiv = document.createElement('div');
+            memberDiv.className = "flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer";
+            memberDiv.onclick = () => {
+              closeRoomMembers();
+              handleUserClick(displayInfo, isMe ? 'me' : 'other');
+            };
+            memberDiv.innerHTML = `
+              <div class="flex items-center gap-3">
+                <img src="${displayInfo.avatar}" class="w-10 h-10 rounded-full object-cover border border-white">
+                <div class="text-right">
+                  <p class="font-bold text-slate-800 text-sm">${displayInfo.name}</p>
+                  <p class="text-[10px] text-slate-400 font-bold">${displayInfo.age ? displayInfo.age + ' ' + translations.ar.years : ''}</p>
                 </div>
-                ${isMe ? '<span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-1 rounded-lg font-bold">أنت</span>' : ''}
-              `;
-              displays.roomMembersList.appendChild(memberDiv);
-            });
-          }
+              </div>
+              ${isMe ? '<span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-1 rounded-lg font-bold">أنت</span>' : ''}
+            `;
+            displays.roomMembersList.appendChild(memberDiv);
+          });
 
           displays.modalRoomMembers.classList.remove('hidden');
           setTimeout(() => {
@@ -1806,9 +1985,6 @@
           }, 300);
         }
 
-        let selectedUserProfile = null;
-        let activePrivateChatId = null;
-        let privateConversations = [];
         function handleUserClick(profile, senderType, isWelcome = false) {
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
           if (!room) return;
@@ -1818,7 +1994,7 @@
           selectedUserProfile = displayProfile;
           
           // If I am the owner and I clicked someone else (and it's not a system/welcome message)
-          if (room.creator === 'me' && !isMe && !isWelcome) {
+          if (room.creatorUid === userProfile.uid && !isMe && !isWelcome) {
             showUserActions(displayProfile);
           } else {
             showUserProfile(displayProfile);
@@ -1943,22 +2119,31 @@
         }
 
         function editMessage(messageId) {
-          const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
-          if (!room) return;
-          const msg = room.messages.find(m => m.id === messageId);
+          let msg;
+          if (isPrivateMode) {
+            const conv = privateConversations.find(c => c.user.uid === activePrivateChatId);
+            if (!conv) return;
+            msg = conv.messages.find(m => m.id === messageId);
+          } else {
+            const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
+            if (!room) return;
+            msg = room.messages.find(m => m.id === messageId);
+          }
+          
           if (!msg) return;
 
           const newText = prompt("تعديل الرسالة:", msg.text);
           if (newText === null || newText.trim() === "") return;
 
-          const updateList = (list) => list.map(r => r.id === activeRoomId ? { 
-            ...r, 
-            messages: r.messages.map(m => m.id === messageId ? { ...m, text: newText.trim(), isEdited: true } : m) 
-          } : r);
-          
-          onlineRooms = updateList(onlineRooms);
-          myRooms = updateList(myRooms);
-          renderMessages();
+          try {
+            if (isPrivateMode) {
+              updateDoc(doc(db, 'privateMessages', messageId), { text: newText.trim(), isEdited: true });
+            } else {
+              updateDoc(doc(db, 'rooms', activeRoomId, 'messages', messageId), { text: newText.trim(), isEdited: true });
+            }
+          } catch (error) {
+            console.error("Edit message error:", error);
+          }
         }
 
         function toggleSearch() {
@@ -2066,11 +2251,13 @@
         };
         buttons.roomSettingsBack.onclick = () => showScreen('chat');
         buttons.deleteRoom.onclick = () => {
-          showConfirm(translations.ar.confirmDeleteRoom, () => {
-            onlineRooms = onlineRooms.filter(r => r.id !== activeRoomId);
-            myRooms = myRooms.filter(r => r.id !== activeRoomId);
-            showScreen('home');
-            renderRooms();
+          showConfirm(translations.ar.confirmDeleteRoom, async () => {
+            try {
+              await deleteDoc(doc(db, 'rooms', activeRoomId));
+              showScreen('home');
+            } catch (error) {
+              console.error("Delete room error:", error);
+            }
           });
         };
         buttons.saveRoomSettings.onclick = saveRoomSettings;
@@ -2094,6 +2281,7 @@
 
         buttons.exitPrivateChat.onclick = () => {
           activePrivateChatId = null;
+          isPrivateMode = false;
           renderInbox();
           showScreen('inbox');
         };
@@ -2160,6 +2348,7 @@
           displays.modalUserActions.classList.remove('opacity-100');
 
           activePrivateChatId = user.uid;
+          isPrivateMode = true;
           displays.privateChatAvatar.src = user.avatar;
           const isMe = user.uid === userProfile.uid;
           displays.privateChatName.innerText = isMe ? translations.ar.messageYourself : user.name;
@@ -2185,18 +2374,56 @@
             
             div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'justify-start flex-row-reverse' : 'justify-end flex-row'}`;
             
+            const senderInfo = isMe ? userProfile : conv.user;
+            const avatarHtml = isMe ? '' : `
+              <img src="${senderInfo.avatar}" 
+                   class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-slate-200 cursor-pointer hover:scale-110 transition-transform"
+                   onclick="window.handleUserClick(${JSON.stringify(senderInfo).replace(/"/g, '&quot;')}, 'other', false)">
+            `;
+
             div.innerHTML = `
+              ${avatarHtml}
               <div class="message-bubble max-w-[85%] p-5 rounded-3xl text-xl font-bold relative cursor-pointer hover:opacity-90 transition-opacity ${
                 isMe
                   ? 'bg-blue-600 text-white rounded-br-none'
                   : 'bg-white text-slate-800 border border-slate-100 rounded-bl-none shadow-sm'
               }">
-                <p class="text-right leading-relaxed">${msg.text}</p>
+                <p class="text-right leading-relaxed">
+                  ${msg.text}
+                  ${msg.isEdited ? `<span class="text-[10px] opacity-70 block mt-1">(معدلة)</span>` : ''}
+                </p>
                 <span class="text-xs block mt-2 ${isMe ? 'text-blue-100' : 'text-slate-400'}">
                   ${msg.time}
                 </span>
               </div>
             `;
+            
+            const bubble = div.querySelector('.message-bubble');
+            
+            // Handle click to show profile
+            bubble.onclick = () => window.handleUserClick(senderInfo, isMe ? 'me' : 'other', false);
+
+            if (isMe) {
+              let longPressTimer;
+              const handleStart = (e) => {
+                longPressTimer = setTimeout(() => {
+                  showContextMenu(e, msg.id);
+                }, 600);
+              };
+              const handleEnd = () => {
+                clearTimeout(longPressTimer);
+              };
+              
+              bubble.addEventListener('touchstart', handleStart);
+              bubble.addEventListener('touchend', handleEnd);
+              bubble.addEventListener('touchmove', handleEnd);
+              
+              bubble.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showContextMenu(e, msg.id);
+              });
+            }
+
             displays.privateChatMessages.appendChild(div);
           });
           displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
