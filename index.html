@@ -105,11 +105,11 @@
       }
       
       @keyframes messageAppear {
-        from { opacity: 0; transform: translateY(10px) scale(0.98); }
+        from { opacity: 0; transform: translateY(20px) scale(0.9); }
         to { opacity: 1; transform: translateY(0) scale(1); }
       }
       .message-appear {
-        animation: messageAppear 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        animation: messageAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
       /* Range Input Styling */
@@ -340,7 +340,7 @@
               </svg>
             </button>
           </div>
-          <h1 class="text-4xl font-black text-black mb-3 tracking-tighter">Nilechat sudani</h1>
+          <h1 class="text-3xl font-black text-black mb-3 tracking-tighter">Nilechat sudani</h1>
           <h2 id="home-title" class="text-xl font-bold text-slate-800"></h2>
           
           <!-- Search Bar -->
@@ -870,8 +870,11 @@
       <!-- VIP Modal -->
       <div id="modal-vip" class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 hidden backdrop-blur-sm transition-all duration-300 opacity-0">
         <div class="bg-white w-full max-w-[360px] rounded-3xl overflow-hidden transform scale-90 transition-all duration-300 p-8 text-right space-y-6" id="vip-modal-content">
-          <div class="w-20 h-20 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center mx-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+          <div class="w-full flex justify-center">
+            <img src="https://i.pinimg.com/736x/c1/da/e2/c1dae28bf31ac29c3d5baf055d316d4f.jpg" 
+                 class="w-32 h-32 rounded-2xl object-cover shadow-lg border-2 border-yellow-400" 
+                 alt="VIP" 
+                 referrerPolicy="no-referrer">
           </div>
           <div class="space-y-4">
             <h3 class="text-xl font-extrabold text-slate-800 text-center">NileChat Sudani VIP</h3>
@@ -1577,7 +1580,14 @@
             });
             privateConversations = Object.values(convs);
             renderInbox();
-            if (activePrivateChatId) renderPrivateMessages(true);
+            if (activePrivateChatId) {
+              const currentConv = privateConversations.find(c => c.user.uid === activePrivateChatId);
+              if (currentConv) {
+                const lastMsg = currentConv.messages[currentConv.messages.length - 1];
+                const isFromMe = lastMsg && lastMsg.fromUid === userProfile.uid;
+                renderPrivateMessages(isFromMe);
+              }
+            }
           });
         }
 
@@ -1808,9 +1818,21 @@
             fragment.appendChild(div);
           });
 
+          const scrollOffsetFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop;
+          const isAtBottom = scrollOffsetFromBottom <= chatMessages.clientHeight + 100;
+          
           chatMessages.innerHTML = '';
           chatMessages.appendChild(fragment);
-          chatMessages.scrollTop = chatMessages.scrollHeight;
+          
+          if (shouldAnimateLast || isAtBottom) {
+            chatMessages.scrollTo({
+              top: chatMessages.scrollHeight,
+              behavior: shouldAnimateLast ? 'smooth' : 'auto'
+            });
+          } else {
+            // Maintain scroll position relative to bottom to keep older messages "static"
+            chatMessages.scrollTop = chatMessages.scrollHeight - scrollOffsetFromBottom;
+          }
         }
 
         // Actions
@@ -1881,8 +1903,15 @@
             orderBy('timestamp', 'asc')
           );
           roomMessagesUnsubscribe = onSnapshot(q, (snapshot) => {
-            room.messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderMessages(true);
+            const newMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const lastMsg = newMessages[newMessages.length - 1];
+            const isFromMe = lastMsg && lastMsg.senderUid === userProfile.uid;
+            
+            // Only trigger "smooth" animation/scroll if it's a new message from me
+            const isNew = !room.messages || newMessages.length > room.messages.length;
+            
+            room.messages = newMessages;
+            renderMessages(isNew && isFromMe);
           });
 
           showScreen('chat');
@@ -2725,9 +2754,21 @@
             fragment.appendChild(div);
           });
 
+          const scrollOffsetFromBottom = displays.privateChatMessages.scrollHeight - displays.privateChatMessages.scrollTop;
+          const isAtBottom = scrollOffsetFromBottom <= displays.privateChatMessages.clientHeight + 100;
+
           displays.privateChatMessages.innerHTML = '';
           displays.privateChatMessages.appendChild(fragment);
-          displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
+          
+          if (shouldAnimateLast || isAtBottom) {
+            displays.privateChatMessages.scrollTo({
+              top: displays.privateChatMessages.scrollHeight,
+              behavior: shouldAnimateLast ? 'smooth' : 'auto'
+            });
+          } else {
+            // Maintain scroll position relative to bottom
+            displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight - scrollOffsetFromBottom;
+          }
         }
 
         async function sendPrivateMessage() {
