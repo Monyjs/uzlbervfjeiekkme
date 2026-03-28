@@ -92,11 +92,11 @@
       }
       
       @keyframes messageAppear {
-        from { opacity: 0; transform: translateY(15px) scale(0.9); }
+        from { opacity: 0; transform: translateY(10px) scale(0.98); }
         to { opacity: 1; transform: translateY(0) scale(1); }
       }
       .message-appear {
-        animation: messageAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+        animation: messageAppear 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
       }
 
       /* Range Input Styling */
@@ -510,7 +510,7 @@
           </div>
         </div>
 
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 custom-scrollbar scroll-smooth">
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 custom-scrollbar">
           <!-- Messages will be injected here -->
         </div>
 
@@ -554,7 +554,7 @@
           </button>
         </div>
 
-        <div id="private-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 custom-scrollbar scroll-smooth">
+        <div id="private-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 custom-scrollbar">
           <!-- Messages will be injected here -->
         </div>
 
@@ -720,6 +720,10 @@
 
       <!-- Message Context Menu -->
       <div id="message-context-menu" class="fixed z-[150] hidden bg-white dark:bg-[#333333] shadow-xl rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden min-w-[150px] fade-in-fast">
+        <button id="btn-copy-message-action" class="w-full px-6 py-4 text-right text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-end gap-3 transition-colors font-bold border-b border-slate-50 dark:border-slate-700">
+          <span>نسخ</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+        </button>
         <button id="btn-edit-message-action" class="w-full px-6 py-4 text-right text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center justify-end gap-3 transition-colors font-bold border-b border-slate-50 dark:border-slate-700">
           <span>تعديل</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -930,6 +934,17 @@
         const splashText = "Nilechat";
         const splashTitle = document.getElementById("splash-title");
 
+        // Populate splash title with animated spans immediately
+        if (splashTitle) {
+            splashTitle.innerHTML = "";
+            splashText.split("").forEach((letter, index) => {
+                const span = document.createElement("span");
+                span.textContent = letter;
+                span.style.animationDelay = (index * 0.1) + "s";
+                splashTitle.appendChild(span);
+            });
+        }
+
         const translations = {
             ar: {
                 loginBtn: "لدي حساب بالفعل",
@@ -1026,13 +1041,6 @@
                 lastMessage: "آخر رسالة: "
             }
         };
-
-        splashText.split("").forEach((letter, index) => {
-            const span = document.createElement("span");
-            span.textContent = letter;
-            span.style.animationDelay = (index * 0.1) + "s";
-            splashTitle.appendChild(span);
-        });
 
         window.showPage = function(id) {
             currentStep = id;
@@ -1164,17 +1172,6 @@
             renderRooms();
         }
 
-        setTimeout(() => {
-            const splash = document.getElementById("splash");
-            if (splash) splash.classList.add("fade-out");
-            setTimeout(() => {
-                // Only redirect to auth if we haven't entered the app yet
-                if (currentStep === 'home' && !auth.currentUser) {
-                    showPage("auth");
-                }
-            }, 800);
-        }, 5000);
-
         let cropperInstance = null;
         let cropperTarget = null; // 'avatar', 'room', 'createRoom'
         let cropperAspectRatio = 1;
@@ -1281,6 +1278,7 @@
           privateMessages: document.getElementById('btn-private-messages'),
           deleteMessageBtn: document.getElementById('btn-delete-message-action'),
           editMessageBtn: document.getElementById('btn-edit-message-action'),
+          copyMessageBtn: document.getElementById('btn-copy-message-action'),
           toggleMuteUsers: document.getElementById('btn-toggle-mute-users'),
           cropperCancel: document.getElementById('btn-cropper-cancel'),
           cropperConfirm: document.getElementById('btn-cropper-confirm'),
@@ -1293,8 +1291,10 @@
         };
         const darkToggleCircle = document.getElementById('dark-toggle-circle');
 
-        // Mock Auth Listener
+        // Auth Listener
         onAuthStateChanged(auth, async (user) => {
+          let targetPage = 'auth';
+          
           if (user) {
             if (mockDb.users[user.uid]) {
               userProfile = mockDb.users[user.uid];
@@ -1310,14 +1310,32 @@
               mockDb.users[user.uid] = userProfile;
               saveMockDb();
             }
-            enterApp();
+            targetPage = 'app-container';
             setupRealtimeListeners();
-          } else {
-            showPage('auth');
           }
-          // Hide splash
-          const splash = document.getElementById("splash");
-          if (splash) splash.classList.add("fade-out");
+
+          // Ensure splash is visible for at least 3 seconds to show animation
+          setTimeout(() => {
+            const splash = document.getElementById("splash");
+            if (splash) {
+                splash.classList.add("fade-out");
+                // Wait for fade-out animation to complete before switching pages
+                setTimeout(() => {
+                    if (targetPage === 'app-container') {
+                        enterApp();
+                    } else {
+                        showPage('auth');
+                    }
+                }, 800);
+            } else {
+                // Fallback if splash element is missing
+                if (targetPage === 'app-container') {
+                    enterApp();
+                } else {
+                    showPage('auth');
+                }
+            }
+          }, 3000);
         });
 
         function setupRealtimeListeners() {
@@ -1508,8 +1526,13 @@
         function renderMessages(shouldAnimateLast = false) {
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
           if (!room) return;
-          chatMessages.innerHTML = '';
           const msgs = room.messages || [];
+          
+          // Optimization: If we already have messages rendered and only one or two were added,
+          // we can potentially append. But for simplicity and to ensure correct order/state,
+          // we'll keep the full render but optimize the DOM operations.
+          
+          const fragment = document.createDocumentFragment();
           msgs.forEach((msg, index) => {
             const div = document.createElement('div');
             const isLast = index === msgs.length - 1;
@@ -1522,7 +1545,7 @@
                   ${translations.ar.welcomeMessage.replace('{name}', room.name)}
                 </div>
               `;
-              chatMessages.appendChild(div);
+              fragment.appendChild(div);
               return;
             }
 
@@ -1563,11 +1586,8 @@
             `;
 
             const bubble = div.querySelector('.message-bubble');
-            
-            // Handle click to show profile
             bubble.onclick = () => window.handleUserClick(senderInfo, isMe ? 'me' : 'other', !!msg.isWelcome);
 
-            // Handle long press and right click for deletion
             if (isMe) {
               let longPressTimer;
               const handleStart = (e) => {
@@ -1578,19 +1598,20 @@
               const handleEnd = () => {
                 clearTimeout(longPressTimer);
               };
-              
               bubble.addEventListener('touchstart', handleStart);
               bubble.addEventListener('touchend', handleEnd);
               bubble.addEventListener('touchmove', handleEnd);
-              
               bubble.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 showContextMenu(e, msg.id);
               });
             }
 
-            chatMessages.appendChild(div);
+            fragment.appendChild(div);
           });
+
+          chatMessages.innerHTML = '';
+          chatMessages.appendChild(fragment);
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
@@ -1708,12 +1729,8 @@
             // Switch to "My Rooms" view automatically so it's visible
             switchViewMode('my');
             
-            // Show home screen briefly to let user see the room in the list
-            showScreen('home');
-            
-            setTimeout(() => {
-              joinRoom({ id: roomRef.id, ...newRoom });
-            }, 800);
+            // Open the new room directly
+            joinRoom({ id: roomRef.id, ...newRoom });
           } catch (error) {
             console.error("Create room error:", error);
           }
@@ -1730,6 +1747,11 @@
 
           const text = inputs.message.value.trim();
           if (!text || !activeRoomId) return;
+
+          // Optimistic UI: Clear input immediately
+          inputs.message.value = '';
+          inputs.message.focus();
+
           const msg = {
             timestamp: Date.now(),
             text,
@@ -1740,8 +1762,6 @@
           
           try {
             await addDoc(collection(db, 'rooms', activeRoomId, 'messages'), msg);
-            inputs.message.value = '';
-            inputs.message.focus();
           } catch (error) {
             console.error("Send message error:", error);
           }
@@ -2080,13 +2100,19 @@
 
           // Adjust position
           const menuWidth = 150;
-          const menuHeight = 120; // Increased height for edit button
+          const menuHeight = 180; // Increased height for copy button
           if (x + menuWidth > window.innerWidth) x -= menuWidth;
           if (y + menuHeight > window.innerHeight) y -= menuHeight;
           
           menu.style.left = `${x}px`;
           menu.style.top = `${y}px`;
           
+          // Copy action
+          buttons.copyMessageBtn.onclick = () => {
+            copyMessage(messageId);
+            hideContextMenu();
+          };
+
           // Check if message is editable (within 30 seconds)
           const msgTime = parseInt(messageId);
           if (isNaN(msgTime)) {
@@ -2110,6 +2136,27 @@
             deleteMessage(messageId);
             hideContextMenu();
           };
+        }
+
+        function copyMessage(messageId) {
+          let msg;
+          if (isPrivateMode) {
+            const conv = privateConversations.find(c => c.user.uid === activePrivateChatId);
+            if (!conv) return;
+            msg = conv.messages.find(m => m.id === messageId);
+          } else {
+            const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
+            if (!room) return;
+            msg = room.messages.find(m => m.id === messageId);
+          }
+          
+          if (!msg || !msg.text) return;
+
+          navigator.clipboard.writeText(msg.text).then(() => {
+            showNotice("تم نسخ الرسالة");
+          }).catch(err => {
+            console.error('Could not copy text: ', err);
+          });
         }
         
         function hideContextMenu() {
@@ -2365,7 +2412,7 @@
           const conv = privateConversations.find(c => c.user.uid === activePrivateChatId);
           if (!conv) return;
 
-          displays.privateChatMessages.innerHTML = '';
+          const fragment = document.createDocumentFragment();
           conv.messages.forEach((msg, index) => {
             const div = document.createElement('div');
             const isLast = index === conv.messages.length - 1;
@@ -2399,8 +2446,6 @@
             `;
             
             const bubble = div.querySelector('.message-bubble');
-            
-            // Handle click to show profile
             bubble.onclick = () => window.handleUserClick(senderInfo, isMe ? 'me' : 'other', false);
 
             if (isMe) {
@@ -2413,25 +2458,30 @@
               const handleEnd = () => {
                 clearTimeout(longPressTimer);
               };
-              
               bubble.addEventListener('touchstart', handleStart);
               bubble.addEventListener('touchend', handleEnd);
               bubble.addEventListener('touchmove', handleEnd);
-              
               bubble.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 showContextMenu(e, msg.id);
               });
             }
 
-            displays.privateChatMessages.appendChild(div);
+            fragment.appendChild(div);
           });
+
+          displays.privateChatMessages.innerHTML = '';
+          displays.privateChatMessages.appendChild(fragment);
           displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
         }
 
         async function sendPrivateMessage() {
           const text = inputs.privateMessage.value.trim();
           if (!text || !activePrivateChatId) return;
+
+          // Optimistic UI: Clear input immediately
+          inputs.privateMessage.value = '';
+          inputs.privateMessage.focus();
 
           const msg = {
             timestamp: Date.now(),
@@ -2444,7 +2494,6 @@
 
           try {
             await addDoc(collection(db, 'privateMessages'), msg);
-            inputs.privateMessage.value = '';
           } catch (error) {
             console.error("Send private message error:", error);
           }
@@ -2573,38 +2622,33 @@
 
         // Init
         inputs.message.onfocus = () => {
-          setTimeout(() => {
-            chatMessages.scrollTo({
-              top: chatMessages.scrollHeight,
-              behavior: 'auto'
-            });
-          }, 100);
+          // Immediate scroll and then multiple delays to catch keyboard height change
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+          [50, 100, 200, 300, 400, 500].forEach(delay => {
+            setTimeout(() => {
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, delay);
+          });
         };
 
         inputs.message.onblur = () => {
           setTimeout(() => {
-            chatMessages.scrollTo({
-              top: chatMessages.scrollHeight,
-              behavior: 'auto'
-            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
           }, 100);
         };
 
         inputs.privateMessage.onfocus = () => {
-          setTimeout(() => {
-            displays.privateChatMessages.scrollTo({
-              top: displays.privateChatMessages.scrollHeight,
-              behavior: 'auto'
-            });
-          }, 100);
+          displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
+          [50, 100, 200, 300, 400, 500].forEach(delay => {
+            setTimeout(() => {
+              displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
+            }, delay);
+          });
         };
 
         inputs.privateMessage.onblur = () => {
           setTimeout(() => {
-            displays.privateChatMessages.scrollTo({
-              top: displays.privateChatMessages.scrollHeight,
-              behavior: 'auto'
-            });
+            displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
           }, 100);
         };
 
