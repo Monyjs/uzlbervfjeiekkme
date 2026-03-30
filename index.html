@@ -77,6 +77,10 @@
         max-width: 800px;
         margin: 0 auto;
         box-shadow: 0 0 50px rgba(0,0,0,0.1);
+        transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
       
       @media (max-width: 640px) {
@@ -314,11 +318,15 @@
         <div class="auth-container">
             <div class="auth-title" id="signupTitle">إنشاء حساب</div>
             <div class="w-full space-y-2">
-                <input type="text" id="reg-name" placeholder="اكتب اسمك" class="auth-input">
                 <div class="relative">
                     <input type="tel" id="reg-phone" placeholder="رقم الهاتف السوداني" class="auth-input pl-24 text-left" dir="ltr">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xl" dir="ltr">+249</span>
                 </div>
+                <div class="relative">
+                    <input type="text" id="reg-username" placeholder="اسم المستخدم" class="auth-input pl-10 text-left" dir="ltr">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xl">@</span>
+                </div>
+                <input type="text" id="reg-name" placeholder="اكتب اسمك" class="auth-input">
                 <input type="password" id="reg-password" placeholder="كلمة المرور" class="auth-input">
                 <input type="password" id="reg-confirm-password" placeholder="تكرار كلمة المرور" class="auth-input">
                 <button class="auth-btn main-btn" onclick="signupWithPhone()">إنشاء حساب</button>
@@ -349,9 +357,16 @@
           
           <!-- Search Bar -->
           <div id="search-container" class="w-full mt-4 fade-in px-6">
-            <div class="relative">
-              <input type="text" id="input-search-code" placeholder="ابحث عن اسم الغرفة أو الكود..." class="w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 absolute left-6 top-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <div class="flex items-center gap-3">
+              <button id="btn-joined-rooms" class="p-5 bg-white border border-slate-200 rounded-2xl text-blue-600 hover:bg-blue-50 transition-all active:scale-90 shadow-sm flex-shrink-0" title="الغرف التي انضممت إليها">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </button>
+              <div class="relative flex-1">
+                <input type="text" id="input-search-code" placeholder="ابحث عن اسم الغرفة أو الكود..." class="w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 absolute left-6 top-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </div>
             </div>
           </div>
         </div>
@@ -395,6 +410,10 @@
               </div>
               <div class="w-full space-y-4">
                 <input type="text" id="input-user-name" placeholder="الاسم" class="w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-lg">
+                <div class="relative">
+                  <span class="absolute left-6 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold text-lg">@</span>
+                  <input type="text" id="input-user-handle" placeholder="اسم المستخدم (اليوزر)" class="w-full p-6 pl-12 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-lg font-bold">
+                </div>
                 <input type="number" id="input-user-age" placeholder="العمر" class="w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-lg">
                 <textarea id="input-user-bio" placeholder="النبذة الشخصية..." class="w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-lg h-40 resize-none"></textarea>
                 
@@ -519,7 +538,7 @@
           <!-- Messages will be injected here -->
         </div>
 
-        <div id="chat-input-area" class="p-4 bg-white border-t border-slate-100">
+        <div id="chat-input-area" class="p-4 bg-white border-t border-slate-100 transition-all duration-300 ease-out">
           <div id="message-input-container" class="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200">
             <button id="btn-send-message" class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 transition-all active:scale-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="transform: rotate(-90deg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
@@ -543,6 +562,17 @@
           <h2 class="text-2xl font-extrabold text-slate-800" id="inbox-title">صندوق الوارد</h2>
           <div class="w-12"></div>
         </div>
+        
+        <!-- Search Accounts -->
+        <div class="px-6 py-4 bg-white border-b border-slate-50">
+          <div class="relative">
+            <input type="text" id="input-search-accounts" placeholder="البحث عن حساب باليوزر..." class="w-full p-4 pr-12 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-base font-bold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-slate-400 absolute top-1/2 right-4 transform -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
         <div id="inbox-list" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
           <!-- Conversations will be injected here -->
         </div>
@@ -551,7 +581,7 @@
       <!-- Private Chat Screen -->
       <div id="screen-private-chat" class="w-full flex-1 flex flex-col h-full hidden fade-in">
         <div id="private-chat-header" class="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10 transition-colors">
-          <div class="flex items-center gap-4">
+          <div id="private-chat-user-info" class="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
             <img id="private-chat-avatar" src="" class="w-14 h-14 rounded-full object-cover border border-slate-200">
             <div class="text-right">
               <h3 id="private-chat-name" class="font-extrabold text-lg leading-tight">اسم المستخدم</h3>
@@ -568,7 +598,7 @@
           <!-- Messages will be injected here -->
         </div>
 
-        <div class="p-4 bg-white border-t border-slate-100">
+        <div id="private-chat-input-area" class="p-4 bg-white border-t border-slate-100 transition-all duration-300 ease-out">
           <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200">
             <button id="btn-send-private-message" class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 transition-all active:scale-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="transform: rotate(-90deg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
@@ -663,6 +693,7 @@
           <div class="px-8 pb-10 text-center -mt-16 relative">
             <img id="profile-modal-avatar" src="" class="w-32 h-32 rounded-full border-4 border-white mx-auto object-cover bg-white">
             <h3 id="profile-modal-name" class="mt-5 text-2xl font-bold text-slate-900">الاسم</h3>
+            <p id="profile-modal-username" class="text-sm text-blue-600 font-bold mb-1" dir="ltr">@username</p>
             <p id="profile-modal-age" class="text-xs text-slate-400 font-bold mb-6">العمر</p>
             <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-right mb-6">
               <label id="label-profile-bio" class="block text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">النبذة</label>
@@ -710,6 +741,12 @@
           </div>
           <div id="room-members-list" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             <!-- Members will be injected here -->
+          </div>
+          <div id="leave-room-container" class="p-4 border-t border-slate-100 hidden">
+            <button id="btn-leave-room" class="w-full py-4 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-100 transition-all active:scale-95 text-lg flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              تسجيل الخروج من الغرفة
+            </button>
           </div>
         </div>
       </div>
@@ -939,6 +976,7 @@
       let isPrivateMode = false;
       let onlineRooms = [];
       let myRooms = [];
+      let roomMessagesCache = {};
       let privateConversations = [];
       let activePrivateChatId = null;
       let selectedUserProfile = null;
@@ -947,11 +985,13 @@
       let userProfile = {
         uid: '',
         name: '',
+        handle: '',
         age: '',
         bio: '',
         avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
         showRoomsOnProfile: true
       };
+      let usersCache = {};
       let listenersInitialized = false;
 
       // --- Mock Firebase (Local State) ---
@@ -1193,6 +1233,7 @@
                 welcomeMessage: "مرحباً بك في غرفة {name} يمكنك الآن البدء في المراسلة",
                 welcomeMsgLabel: "رسالة الترحيب",
                 welcomeMsgPlaceholder: "اكتب رسالة ترحيب للغرفة (اختياري)...",
+                joining: "جاري الانضمام...",
                 userRemoved: "تمت إزالة {name} من الغرفة بنجاح",
                 roomFull: "عذراً، هذه الغرفة ممتلئة حالياً!",
                 copied: "تم النسخ!",
@@ -1530,7 +1571,9 @@
           roomImage: document.getElementById('input-room-image'),
           createRoomImage: document.getElementById('input-create-room-image'),
           searchCode: document.getElementById('input-search-code'),
-          privateMessage: document.getElementById('input-private-message')
+          searchAccounts: document.getElementById('input-search-accounts'),
+          privateMessage: document.getElementById('input-private-message'),
+          userHandle: document.getElementById('input-user-handle')
         };
         const displays = {
           roomCode: document.getElementById('display-room-code'),
@@ -1544,6 +1587,7 @@
           modalUserProfile: document.getElementById('modal-user-profile'),
           profileModalAvatar: document.getElementById('profile-modal-avatar'),
           profileModalName: document.getElementById('profile-modal-name'),
+          profileModalUsername: document.getElementById('profile-modal-username'),
           profileModalAge: document.getElementById('profile-modal-age'),
           profileModalBio: document.getElementById('profile-modal-bio'),
           profileModalRooms: document.getElementById('profile-modal-rooms'),
@@ -1569,17 +1613,20 @@
           privateChatMessages: document.getElementById('private-chat-messages'),
           privateChatAvatar: document.getElementById('private-chat-avatar'),
           privateChatName: document.getElementById('private-chat-name'),
+          privateChatUserInfo: document.getElementById('private-chat-user-info'),
           labelMessageUser: document.getElementById('label-message-user'),
           modalPackages: document.getElementById('modal-packages'),
           packagesModalContent: document.getElementById('packages-modal-content'),
           modalVip: document.getElementById('modal-vip'),
           vipModalContent: document.getElementById('vip-modal-content'),
           messageInputContainer: document.getElementById('message-input-container'),
-          joinRoomContainer: document.getElementById('join-room-container')
+          joinRoomContainer: document.getElementById('join-room-container'),
+          leaveRoomContainer: document.getElementById('leave-room-container')
         };
         const buttons = {
           viewAll: document.getElementById('btn-view-all'),
           viewMy: document.getElementById('btn-view-my'),
+          joinedRooms: document.getElementById('btn-joined-rooms'),
           closePackages: document.getElementById('btn-close-packages'),
           closeVip: document.getElementById('btn-close-vip'),
           subscribeVip: document.getElementById('btn-subscribe-vip'),
@@ -1624,7 +1671,8 @@
           inboxBack: document.getElementById('btn-inbox-back'),
           exitPrivateChat: document.getElementById('btn-exit-private-chat'),
           sendPrivateMessage: document.getElementById('btn-send-private-message'),
-          settingsMessageSelf: document.getElementById('btn-settings-message-self')
+          settingsMessageSelf: document.getElementById('btn-settings-message-self'),
+          leaveRoom: document.getElementById('btn-leave-room')
         };
         const darkToggleCircle = document.getElementById('dark-toggle-circle');
 
@@ -1677,10 +1725,29 @@
         function setupRealtimeListeners() {
           if (listenersInitialized) return;
           listenersInitialized = true;
+
+          // Listen for Users to keep profiles updated in real-time
+          onSnapshot(collection(db, 'users'), (snapshot) => {
+            snapshot.docs.forEach(doc => {
+              const data = { id: doc.id, ...doc.data() };
+              usersCache[doc.id] = data;
+              mockDb.users[doc.id] = data;
+              
+              // If it's the current user, update the global userProfile too
+              if (userProfile && doc.id === userProfile.uid) {
+                userProfile = { ...userProfile, ...data };
+              }
+            });
+            // Re-render current screens if needed
+            if (currentStep === 'chat') renderMessages();
+            if (currentStep === 'privateChat') renderPrivateMessages();
+            if (currentStep === 'inbox') renderInbox();
+          });
+
           // Listen for Rooms
           onSnapshot(collection(db, 'rooms'), (snapshot) => {
             onlineRooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            myRooms = onlineRooms.filter(r => r.creatorUid === userProfile.uid);
+            myRooms = onlineRooms.filter(r => r.creatorUid === userProfile.uid || (r.membersList && r.membersList.some(m => m.uid === userProfile.uid)));
             renderRooms();
 
             // If we are currently in a room, update its header info if it changed
@@ -1716,6 +1783,7 @@
             const allMsgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             const convs = {};
             allMsgs.forEach(msg => {
+              if (msg.fromUid !== userProfile.uid && msg.toUid !== userProfile.uid) return;
               const otherUid = msg.fromUid === userProfile.uid ? msg.toUid : msg.fromUid;
               if (!convs[otherUid]) {
                 const otherUser = mockDb.users[otherUid] || { uid: otherUid, name: translations.ar.otherUser, avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg' };
@@ -1726,15 +1794,13 @@
                 sender: msg.fromUid === userProfile.uid ? 'me' : 'other'
               });
             });
+            // Only trigger "smooth" animation/scroll if it's a new message
+            const isNew = !convs[activePrivateChatId] || (convs[activePrivateChatId].messages.length > (privateConversations.find(c => c.user.uid === activePrivateChatId)?.messages.length || 0));
+            
             privateConversations = Object.values(convs);
             renderInbox();
             if (activePrivateChatId) {
-              const currentConv = privateConversations.find(c => c.user.uid === activePrivateChatId);
-              if (currentConv) {
-                const lastMsg = currentConv.messages[currentConv.messages.length - 1];
-                const isFromMe = lastMsg && lastMsg.fromUid === userProfile.uid;
-                renderPrivateMessages(isFromMe);
-              }
+              renderPrivateMessages(isNew);
             }
           });
         }
@@ -1782,6 +1848,7 @@
             userProfile = {
               uid: user.uid,
               name: name,
+              handle: '',
               age: '',
               bio: '',
               avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
@@ -1795,15 +1862,25 @@
         window.signup = signup;
 
         async function signupWithPhone() {
-          const name = document.getElementById('reg-name').value.trim();
           const phone = document.getElementById('reg-phone').value.trim();
+          const usernameInput = document.getElementById('reg-username').value.trim();
+          const name = document.getElementById('reg-name').value.trim();
           const password = document.getElementById('reg-password').value.trim();
           const confirmPassword = document.getElementById('reg-confirm-password').value.trim();
-
-          if (!name || !phone || !password || !confirmPassword) {
+          
+          if (!phone || !usernameInput || !name || !password || !confirmPassword) {
             alert("يرجى ملء جميع الحقول");
             return;
           }
+          
+          // Validate username is English alphanumeric
+          const usernameRegex = /^[a-zA-Z0-9_]+$/;
+          if (!usernameRegex.test(usernameInput)) {
+            alert("اسم المستخدم يجب أن يكون باللغة الإنجليزية وأرقام فقط");
+            return;
+          }
+          
+          const username = "@" + usernameInput;
 
           if (password !== confirmPassword) {
             alert("كلمات المرور غير متطابقة");
@@ -1812,10 +1889,17 @@
 
           const fullPhone = "+249" + phone;
           
-          // Check if user already exists
-          const existingUser = Object.values(mockDb.users).find(u => u.phone === fullPhone);
-          if (existingUser) {
+          // Check if phone already exists
+          const existingPhone = Object.values(mockDb.users).find(u => u.phone === fullPhone);
+          if (existingPhone) {
             alert("هذا الرقم مسجل بالفعل");
+            return;
+          }
+          
+          // Check if username already exists
+          const existingUsername = Object.values(mockDb.users).find(u => u.username === username);
+          if (existingUsername) {
+            alert("اسم المستخدم هذا مأخوذ بالفعل");
             return;
           }
 
@@ -1823,6 +1907,8 @@
           userProfile = {
             uid: uid,
             name: name,
+            username: username,
+            handle: usernameInput,
             phone: fullPhone,
             password: password,
             age: '',
@@ -1864,26 +1950,51 @@
 
         // Renderers
         function renderRooms() {
-          const list = viewMode === 'online' ? onlineRooms : myRooms;
           const searchVal = inputs.searchCode.value.trim().toUpperCase();
           
           let filteredRooms;
           if (viewMode === 'online') {
+            // Online mode: Show only rooms I HAVEN'T joined yet
+            const list = onlineRooms.filter(r => {
+              const isMember = r.membersList && r.membersList.some(m => m.uid === userProfile.uid);
+              const isCreator = r.creatorUid === userProfile.uid;
+              return !isMember && !isCreator;
+            });
+
             if (searchVal) {
-              // Search mode:
-              // 1. Match code exactly (shows private rooms too)
-              // 2. Match name (shows only public rooms)
               filteredRooms = list.filter(r => {
                 const codeMatch = r.code === searchVal;
                 const nameMatch = !r.isPrivate && r.name.toUpperCase().includes(searchVal);
                 return codeMatch || nameMatch;
               });
             } else {
-              // Default mode: Show only public rooms
               filteredRooms = list.filter(r => !r.isPrivate);
             }
+            // Sort by members count descending
+            filteredRooms.sort((a, b) => (b.members || 0) - (a.members || 0));
           } else {
-            // My Rooms: Show all my rooms (public or private)
+            // Differentiate between 'My Rooms' (created) and 'Joined Rooms' (joined)
+            let list;
+            if (viewMode === 'my') {
+              // Rooms I created
+              list = onlineRooms.filter(r => r.creatorUid === userProfile.uid);
+            } else {
+              // Joined Rooms (where I am a member BUT NOT the creator)
+              list = onlineRooms.filter(r => 
+                r.membersList && 
+                r.membersList.some(m => m.uid === userProfile.uid) && 
+                r.creatorUid !== userProfile.uid
+              );
+              // Sort by join time descending (most recent first)
+              list.sort((a, b) => {
+                const aMember = a.membersList.find(m => m.uid === userProfile.uid);
+                const bMember = b.membersList.find(m => m.uid === userProfile.uid);
+                const aTime = aMember ? (aMember.joinedAt || 0) : 0;
+                const bTime = bMember ? (bMember.joinedAt || 0) : 0;
+                return bTime - aTime;
+              });
+            }
+            
             filteredRooms = searchVal 
               ? list.filter(r => r.name.toUpperCase().includes(searchVal) || r.code.includes(searchVal))
               : list;
@@ -1935,14 +2046,22 @@
           const t = translations.ar;
           const homeTitle = document.getElementById("home-title");
           
+          // Reset all buttons to default inactive state
+          buttons.viewAll.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+          buttons.viewMy.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+          buttons.joinedRooms.classList.remove('bg-blue-600', 'text-white');
+          buttons.joinedRooms.classList.add('bg-white', 'text-blue-600');
+
           if (mode === 'online') {
             buttons.viewAll.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-blue-600 border-blue-600 text-white";
-            buttons.viewMy.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
             if (homeTitle) homeTitle.innerText = t.availableRooms;
-          } else {
+          } else if (mode === 'my') {
             buttons.viewMy.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-blue-600 border-blue-600 text-white";
-            buttons.viewAll.className = "w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
             if (homeTitle) homeTitle.innerText = t.myRoomsTitle;
+          } else if (mode === 'myRooms') {
+            buttons.joinedRooms.classList.add('bg-blue-600', 'text-white');
+            buttons.joinedRooms.classList.remove('bg-white', 'text-blue-600');
+            if (homeTitle) homeTitle.innerText = "الغرف التي انضممت إليها";
           }
           renderRooms();
         }
@@ -1952,7 +2071,7 @@
         function renderMessages(shouldAnimateLast = false) {
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
           if (!room) return;
-          const msgs = room.messages || [];
+          const msgs = roomMessagesCache[activeRoomId] || [];
           
           // Optimization: If we already have messages rendered and only one or two were added,
           // we can potentially append. But for simplicity and to ensure correct order/state,
@@ -1978,13 +2097,14 @@
             const isMe = msg.senderUid === userProfile.uid;
             div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'flex-row justify-start' : 'flex-row-reverse justify-start'}`;
             
-            const senderInfo = isMe ? userProfile : (msg.senderInfo || {
-              uid: 'other',
+            // Prioritize usersCache for real-time profile updates
+            const senderInfo = usersCache[msg.senderUid] || (isMe ? userProfile : (msg.senderInfo || {
+              uid: msg.senderUid || 'other',
               name: translations.ar.otherUser,
               avatar: 'https://i.pinimg.com/736x/92/f8/f9/92f8f92a91bf7de670dddb7b1171a250.jpg',
               age: '22',
               bio: translations.ar.defaultBio
-            });
+            }));
 
             const avatarHtml = isMe ? '' : `
               <img src="${senderInfo.avatar}" 
@@ -1999,6 +2119,7 @@
                   ? 'bg-blue-600 text-white rounded-br-none'
                   : 'bg-white text-slate-800 border border-slate-100 rounded-bl-none shadow-sm'
               }">
+                ${!isMe && !msg.isWelcome ? `<div class="text-xs font-extrabold text-blue-600 mb-1 text-right">${senderInfo.name}</div>` : ''}
                 <div class="flex items-start justify-between gap-3">
                   <p class="text-right flex-1 leading-relaxed">
                     ${msg.isWelcome ? translations.ar.welcomeMessage.replace('{name}', room.name) : msg.text}
@@ -2057,6 +2178,7 @@
         async function joinRoom(room) {
           isPrivateMode = false;
           activeRoomId = room.id;
+          renderMessages(); // Render cached messages immediately
           
           const dbRoom = mockDb.rooms.find(r => r.id === room.id);
           const isMember = dbRoom && dbRoom.membersList && dbRoom.membersList.find(m => m.uid === userProfile.uid);
@@ -2111,11 +2233,11 @@
             const lastMsg = newMessages[newMessages.length - 1];
             const isFromMe = lastMsg && lastMsg.senderUid === userProfile.uid;
             
-            // Only trigger "smooth" animation/scroll if it's a new message from me
-            const isNew = !room.messages || newMessages.length > room.messages.length;
+            // Only trigger "smooth" animation/scroll if it's a new message
+            const isNew = !roomMessagesCache[room.id] || newMessages.length > roomMessagesCache[room.id].length;
             
-            room.messages = newMessages;
-            renderMessages(isNew && isFromMe);
+            roomMessagesCache[room.id] = newMessages;
+            renderMessages(isNew);
           });
 
           showScreen('chat');
@@ -2132,20 +2254,58 @@
             return;
           }
 
-          const dbRoom = mockDb.rooms.find(r => r.id === activeRoomId);
-          if (dbRoom) {
-            if (!dbRoom.membersList) dbRoom.membersList = [];
-            if (!dbRoom.membersList.find(m => m.uid === userProfile.uid)) {
-              dbRoom.membersList.push(userProfile);
-              dbRoom.members = dbRoom.membersList.length;
-              saveMockDb();
-              notifyListeners('rooms');
-              
-              // Update UI
-              displays.messageInputContainer.classList.remove('hidden');
-              displays.joinRoomContainer.classList.add('hidden');
-              buttons.viewMembers.classList.remove('hidden');
+          // Add loading state to button for smoothness
+          const originalText = buttons.confirmJoin.innerText;
+          buttons.confirmJoin.disabled = true;
+          buttons.confirmJoin.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>${translations.ar.joining}</span>
+            </div>
+          `;
+
+          // Artificial delay for smooth transition
+          await new Promise(resolve => setTimeout(resolve, 600));
+
+          try {
+            const roomRef = doc(db, 'rooms', activeRoomId);
+            const currentMembersList = room.membersList || [];
+            if (!currentMembersList.find(m => m.uid === userProfile.uid)) {
+              const updatedMembersList = [...currentMembersList, {
+                uid: userProfile.uid,
+                name: userProfile.name,
+                avatar: userProfile.avatar,
+                joinedAt: Date.now()
+              }];
+              await updateDoc(roomRef, {
+                membersList: updatedMembersList,
+                members: updatedMembersList.length
+              });
             }
+            
+            // Update UI with smooth transition
+            displays.joinRoomContainer.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-300');
+            
+            setTimeout(() => {
+              displays.joinRoomContainer.classList.add('hidden');
+              displays.joinRoomContainer.classList.remove('opacity-0', 'scale-95');
+              
+              displays.messageInputContainer.classList.remove('hidden');
+              displays.messageInputContainer.classList.add('fade-in');
+              buttons.viewMembers.classList.remove('hidden');
+              
+              // Reset button state
+              buttons.confirmJoin.disabled = false;
+              buttons.confirmJoin.innerText = originalText;
+            }, 300);
+          } catch (error) {
+            console.error("Join room error:", error);
+            showNotice("حدث خطأ أثناء الانضمام للغرفة.");
+            buttons.confirmJoin.disabled = false;
+            buttons.confirmJoin.innerText = originalText;
           }
         }
 
@@ -2164,6 +2324,12 @@
             isPrivate: isPrivateMode,
             welcomeMessage: welcomeText,
             creatorUid: userProfile.uid,
+            membersList: [{
+              uid: userProfile.uid,
+              name: userProfile.name,
+              avatar: userProfile.avatar
+            }],
+            members: 1,
             isMuted: false,
             image: displays.createRoomImagePreview.src.startsWith('data:') ? displays.createRoomImagePreview.src : null
           };
@@ -2273,6 +2439,7 @@
         async function saveSettings() {
           // Save Profile
           userProfile.name = inputs.userName.value || userProfile.name;
+          userProfile.handle = inputs.userHandle.value || userProfile.handle;
           userProfile.age = inputs.userAge.value || userProfile.age;
           userProfile.bio = inputs.userBio.value || userProfile.bio;
           
@@ -2347,11 +2514,17 @@
         }
 
         function showUserProfile(profile) {
-          selectedUserProfile = profile;
-          displays.profileModalAvatar.src = profile.avatar;
-          if (displays.profileModalName) displays.profileModalName.innerText = profile.name;
-          if (displays.profileModalAge) displays.profileModalAge.innerText = profile.age ? `${profile.age} ${translations.ar.years}` : '';
-          if (displays.profileModalBio) displays.profileModalBio.innerText = profile.bio || translations.ar.noBio;
+          // Prioritize usersCache for real-time profile updates
+          const latestProfile = usersCache[profile.uid] || profile;
+          selectedUserProfile = latestProfile;
+          displays.profileModalAvatar.src = latestProfile.avatar;
+          if (displays.profileModalName) displays.profileModalName.innerText = latestProfile.name;
+          if (displays.profileModalUsername) {
+            displays.profileModalUsername.innerText = latestProfile.handle ? `@${latestProfile.handle}` : '';
+            displays.profileModalUsername.classList.toggle('hidden', !latestProfile.handle);
+          }
+          if (displays.profileModalAge) displays.profileModalAge.innerText = latestProfile.age ? `${latestProfile.age} ${translations.ar.years}` : '';
+          if (displays.profileModalBio) displays.profileModalBio.innerText = latestProfile.bio || translations.ar.noBio;
           
           // Render user's public rooms
           displays.profileModalRooms.innerHTML = '';
@@ -2411,14 +2584,13 @@
 
           displays.roomMembersList.innerHTML = '';
           
-          // In mock mode, ensure current user is at least in the list
-          const members = room.membersList || [];
-          const hasMe = members.some(m => m.uid === userProfile.uid);
-          const displayMembers = hasMe ? members : [userProfile, ...members];
+          // In mock mode, only show actual members
+          const displayMembers = room.membersList || [];
 
           displayMembers.forEach(member => {
             const isMe = member.uid === userProfile.uid;
-            const displayInfo = isMe ? userProfile : member;
+            // Prioritize usersCache for real-time profile updates
+            const displayInfo = usersCache[member.uid] || (isMe ? userProfile : member);
             
             const memberDiv = document.createElement('div');
             memberDiv.className = "flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer";
@@ -2444,6 +2616,16 @@
             displays.modalRoomMembers.classList.add('opacity-100');
             document.getElementById('members-modal-content').classList.remove('scale-90');
           }, 10);
+
+          // Show leave room button if user is a member and not the creator
+          const isMember = room.membersList && room.membersList.some(m => m.uid === userProfile.uid);
+          const isCreator = room.creatorUid === userProfile.uid;
+          
+          if (isMember && !isCreator) {
+            displays.leaveRoomContainer.classList.remove('hidden');
+          } else {
+            displays.leaveRoomContainer.classList.add('hidden');
+          }
         }
 
         function closeRoomMembers() {
@@ -2510,6 +2692,36 @@
             displays.modalNotice.classList.add('hidden');
           }, 300);
         }
+
+        async function leaveRoomFromDb() {
+          if (!activeRoomId) return;
+          const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
+          if (!room) return;
+
+          try {
+            const newMembersList = (room.membersList || []).filter(m => m.uid !== userProfile.uid);
+            const newMembersCount = Math.max(0, (room.members || 0) - 1);
+
+            await updateDoc(doc(db, 'rooms', activeRoomId), {
+              membersList: newMembersList,
+              members: newMembersCount
+            });
+
+            closeRoomMembers();
+            // Simulate exitChat behavior
+            showScreen('home');
+            renderRooms();
+          } catch (error) {
+            console.error("Leave room error:", error);
+            showNotice("حدث خطأ أثناء الخروج من الغرفة");
+          }
+        }
+
+        buttons.leaveRoom.onclick = () => {
+          showConfirm("هل أنت متأكد من أنك تريد الخروج من الغرفة؟", () => {
+            leaveRoomFromDb();
+          });
+        };
 
         function showConfirm(message, onConfirm) {
           if (displays.confirmModalMessage) displays.confirmModalMessage.innerText = message;
@@ -2708,6 +2920,7 @@
         // Event Listeners
         buttons.viewAll.onclick = () => switchViewMode('online');
         buttons.viewMy.onclick = () => switchViewMode('my');
+        buttons.joinedRooms.onclick = () => switchViewMode('myRooms');
         buttons.goCreate.onclick = () => {
           const userRoomsCount = myRooms.length;
           if (userRoomsCount >= 2) {
@@ -2770,6 +2983,7 @@
         // Settings Listeners
         buttons.openSettings.onclick = () => {
           inputs.userName.value = userProfile.name;
+          inputs.userHandle.value = userProfile.handle || '';
           inputs.userAge.value = userProfile.age;
           inputs.userBio.value = userProfile.bio;
           displays.avatarPreview.src = userProfile.avatar;
@@ -2819,6 +3033,9 @@
         buttons.actionRemove.onclick = removeUserFromRoom;
         buttons.closeNotice.onclick = closeNotice;
         inputs.searchCode.oninput = renderRooms;
+        if (inputs.searchAccounts) {
+          inputs.searchAccounts.oninput = renderInbox;
+        }
         buttons.copyRoomCode.onclick = copyRoomCode;
         buttons.privateMessages.onclick = () => {
           renderInbox();
@@ -2849,43 +3066,110 @@
 
         function renderInbox() {
           displays.inboxList.innerHTML = '';
-          if (privateConversations.length === 0) {
+          const searchTerm = inputs.searchAccounts ? inputs.searchAccounts.value.toLowerCase().trim() : '';
+          
+          // 1. Filter existing conversations
+          const filteredConversations = privateConversations.filter(c => {
+            if (c.messages.length === 0) return false;
+            if (!searchTerm) return true;
+            
+            const displayUser = usersCache[c.user.uid] || c.user;
+            const nameMatch = displayUser.name.toLowerCase().includes(searchTerm);
+            const handleMatch = (displayUser.handle || '').toLowerCase().includes(searchTerm.replace('@', ''));
+            return nameMatch || handleMatch;
+          });
+
+          // 2. If searching, also look for other users in usersCache/mockDb
+          let searchResults = [];
+          if (searchTerm) {
+            const cleanSearch = searchTerm.replace('@', '');
+            // Search in usersCache and mockDb.users
+            const allUsers = { ...mockDb.users, ...usersCache };
+            Object.values(allUsers).forEach(user => {
+              // Don't show myself
+              if (user.uid === userProfile.uid) return;
+              
+              const handle = (user.handle || '').toLowerCase();
+              const name = (user.name || '').toLowerCase();
+              
+              if (handle.includes(cleanSearch) || name.includes(cleanSearch)) {
+                // Check if already in filteredConversations
+                if (!filteredConversations.find(c => c.user.uid === user.uid)) {
+                  searchResults.push(user);
+                }
+              }
+            });
+          }
+
+          if (filteredConversations.length === 0 && searchResults.length === 0) {
             displays.inboxList.innerHTML = `
               <div class="flex flex-col items-center justify-center h-64 text-slate-400 space-y-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                <p class="font-bold">${translations.ar.noPrivateMessages}</p>
+                <p class="font-bold">${searchTerm ? 'لم يتم العثور على نتائج' : translations.ar.noPrivateMessages}</p>
               </div>
             `;
             return;
           }
 
-          privateConversations.filter(c => c.messages.length > 0).sort((a, b) => {
+          // Render Existing Conversations
+          filteredConversations.sort((a, b) => {
             const lastA = a.messages[a.messages.length - 1];
             const lastB = b.messages[b.messages.length - 1];
             return (lastB.timestamp || 0) - (lastA.timestamp || 0);
           }).forEach(conv => {
             const lastMsg = conv.messages[conv.messages.length - 1];
-            if (!lastMsg) return;
+            const displayUser = usersCache[conv.user.uid] || conv.user;
+            const isMe = displayUser.uid === userProfile.uid;
             
-            const isMe = conv.user.uid === userProfile.uid;
             const div = document.createElement('div');
             div.className = "flex items-center gap-4 p-4 bg-white border border-slate-100 rounded-3xl hover:bg-slate-50 transition-all cursor-pointer active:scale-95 shadow-sm";
-            div.onclick = () => openPrivateChat(conv.user);
+            div.onclick = () => openPrivateChat(displayUser);
             div.innerHTML = `
-              <img src="${conv.user.avatar}" class="w-14 h-14 rounded-full object-cover border border-slate-200">
+              <img src="${displayUser.avatar}" class="w-14 h-14 rounded-full object-cover border border-slate-200">
               <div class="flex-1 text-right">
                 <div class="flex items-center justify-between">
                   <span class="text-xs text-slate-400">${lastMsg.time}</span>
-                  <h4 class="font-extrabold text-slate-800">${isMe ? translations.ar.messageYourself : conv.user.name}</h4>
+                  <h4 class="font-extrabold text-slate-800">${isMe ? translations.ar.messageYourself : displayUser.name}</h4>
                 </div>
-                <p class="text-sm text-slate-500 truncate mt-1">
-                  <span class="font-bold text-blue-600">${translations.ar.lastMessage}</span>
-                  ${lastMsg.text}
-                </p>
+                <div class="flex items-center justify-between mt-1">
+                   <p class="text-sm text-slate-500 truncate flex-1 ml-2">
+                    <span class="font-bold text-blue-600">${translations.ar.lastMessage}</span>
+                    ${lastMsg.text}
+                  </p>
+                  ${displayUser.handle ? `<span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">@${displayUser.handle}</span>` : ''}
+                </div>
               </div>
             `;
             displays.inboxList.appendChild(div);
           });
+
+          // Render Search Results (New Users)
+          if (searchResults.length > 0) {
+            const header = document.createElement('div');
+            header.className = "text-xs font-bold text-blue-600 uppercase tracking-wider mt-6 mb-2 text-right px-2";
+            header.innerText = "نتائج البحث (مستخدمين جدد)";
+            displays.inboxList.appendChild(header);
+
+            searchResults.forEach(user => {
+              const div = document.createElement('div');
+              div.className = "flex items-center gap-4 p-4 bg-blue-50/30 border border-blue-100 rounded-3xl hover:bg-blue-50 transition-all cursor-pointer active:scale-95 shadow-sm";
+              div.onclick = () => openPrivateChat(user);
+              div.innerHTML = `
+                <img src="${user.avatar}" class="w-14 h-14 rounded-full object-cover border border-blue-200">
+                <div class="flex-1 text-right">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-blue-400">مستخدم جديد</span>
+                    <h4 class="font-extrabold text-slate-800">${user.name}</h4>
+                  </div>
+                  <div class="flex items-center justify-between mt-1">
+                    <p class="text-sm text-slate-400 italic">ابدأ دردشة جديدة...</p>
+                    ${user.handle ? `<span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">@${user.handle}</span>` : ''}
+                  </div>
+                </div>
+              `;
+              displays.inboxList.appendChild(div);
+            });
+          }
         }
 
         function openPrivateChat(user) {
@@ -2895,12 +3179,24 @@
           displays.modalUserProfile.classList.remove('opacity-100');
           displays.modalUserActions.classList.remove('opacity-100');
 
-          activePrivateChatId = user.uid;
+          // Prioritize usersCache for real-time profile updates
+          const latestUser = usersCache[user.uid] || user;
+          activePrivateChatId = latestUser.uid;
           isPrivateMode = true;
-          displays.privateChatAvatar.src = user.avatar;
-          const isMe = user.uid === userProfile.uid;
-          if (displays.privateChatName) displays.privateChatName.innerText = isMe ? translations.ar.messageYourself : user.name;
+          displays.privateChatAvatar.src = latestUser.avatar;
+          const isMe = latestUser.uid === userProfile.uid;
+          if (displays.privateChatName) displays.privateChatName.innerText = isMe ? translations.ar.messageYourself : latestUser.name;
           document.getElementById('private-chat-status').classList.toggle('hidden', isMe);
+          
+          if (displays.privateChatUserInfo) {
+            displays.privateChatUserInfo.onclick = () => {
+              if (!isMe) {
+                showUserProfile(latestUser);
+              } else {
+                showUserProfile(userProfile);
+              }
+            };
+          }
           
           renderPrivateMessages();
           showScreen('privateChat');
@@ -2911,7 +3207,10 @@
 
         function renderPrivateMessages(shouldAnimateLast = false) {
           const conv = privateConversations.find(c => c.user.uid === activePrivateChatId);
-          if (!conv) return;
+          if (!conv) {
+            displays.privateChatMessages.innerHTML = '';
+            return;
+          }
 
           const fragment = document.createDocumentFragment();
           conv.messages.forEach((msg, index) => {
@@ -2922,7 +3221,8 @@
             
             div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'flex-row justify-start' : 'flex-row-reverse justify-start'}`;
             
-            const senderInfo = isMe ? userProfile : conv.user;
+            // Prioritize usersCache for real-time profile updates
+            const senderInfo = usersCache[msg.fromUid] || (isMe ? userProfile : conv.user);
             const avatarHtml = isMe ? '' : `
               <img src="${senderInfo.avatar}" 
                    class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-slate-200 cursor-pointer hover:scale-110 transition-transform"
@@ -3173,7 +3473,7 @@
           if (currentStep === 'chat') {
             chatMessages.scrollTop = chatMessages.scrollHeight;
           }
-          if (currentStep === 'screen-private-chat') {
+          if (currentStep === 'privateChat') {
             displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
           }
         };
