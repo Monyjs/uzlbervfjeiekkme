@@ -65,6 +65,7 @@
       .dark-mode #vip-modal-content { background-color: #333333 !important; }
       .dark-mode #vip-modal-content h3, .dark-mode #vip-modal-content p, .dark-mode #vip-modal-content li { color: white !important; }
       .dark-mode #btn-close-vip { background-color: #444444 !important; color: #cccccc !important; }
+      .dark-mode #btn-go-create { color: white !important; }
       
       /* Font Size Scaling */
       :root { --base-font-size: 14px; --vh: 1vh; }
@@ -153,19 +154,19 @@
       }
       .auth-container {
           width: 100%;
-          max-width: 500px;
-          padding: 3rem;
+          max-width: 420px;
+          padding: 2rem;
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
       }
       .auth-logo {
-          width: 150px;
-          height: 150px;
+          width: 100px;
+          height: 100px;
           border-radius: 9999px;
           object-fit: cover;
-          margin-bottom: 40px;
+          margin-bottom: 20px;
       }
       .auth-title {
           width: 100%;
@@ -174,7 +175,7 @@
           font-weight: 900;
           display: flex;
           justify-content: center;
-          margin-bottom: 30px;
+          margin-bottom: 20px;
           letter-spacing: 2px;
           direction: ltr !important;
       }
@@ -186,11 +187,11 @@
       }
       .auth-input {
           width: 100%;
-          padding: 18px;
-          border-radius: 20px;
+          padding: 14px;
+          border-radius: 16px;
           border: 1px solid #e2e8f0;
-          margin: 20px 0;
-          font-size: 18px;
+          margin: 10px 0;
+          font-size: 16px;
           text-align: center;
           outline: none;
           transition: border-color 0.2s;
@@ -200,11 +201,11 @@
       }
       .auth-btn {
           width: 100%;
-          padding: 18px;
-          margin: 20px 0;
+          padding: 14px;
+          margin: 10px 0;
           border: none;
-          border-radius: 20px;
-          font-size: 20px;
+          border-radius: 16px;
+          font-size: 18px;
           font-weight: 700;
           transition: 0.2s;
           cursor: pointer;
@@ -285,9 +286,9 @@
     <div id="auth" class="page fade-in">
         <div class="auth-container">
             <img class="auth-logo" src="https://i.pinimg.com/736x/92/f8/f9/92f8f92a91bf7de670dddb7b1171a250.jpg">
-            <div class="auth-title">Nilechat&nbsp;&nbsp;sudani</div>
-            <button class="auth-btn main-btn" id="loginText" onclick="showPage('loginPage')">لدي حساب بالفعل</button>
-            <button class="auth-btn secondary-btn" id="signupText" onclick="showPage('signupPage')">إنشاء حساب جديد</button>
+            <div class="auth-title">Nilechat</div>
+            <button class="auth-btn main-btn" id="signupText" onclick="showPage('signupPage')">إنشاء حساب</button>
+            <button class="auth-btn secondary-btn" id="loginText" onclick="showPage('loginPage')">لدي حساب بالفعل</button>
         </div>
     </div>
 
@@ -296,9 +297,13 @@
         <div class="back-btn" onclick="showPage('auth')" id="back1">رجوع</div>
         <div class="auth-container">
             <div class="auth-title" id="loginTitle">تسجيل الدخول</div>
-            <div class="google-btn" onclick="login()">
-                <img src="https://cdn-icons-png.flaticon.com/512/300/300221.png">
-                <span id="googleLoginText">تسجيل الدخول باستخدام Google</span>
+            <div class="w-full space-y-2">
+                <div class="relative">
+                    <input type="tel" id="login-phone" placeholder="رقم الهاتف" class="auth-input pl-24 text-left" dir="ltr">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xl" dir="ltr">+249</span>
+                </div>
+                <input type="password" id="login-password" placeholder="كلمة المرور" class="auth-input">
+                <button class="auth-btn main-btn" onclick="loginWithPhone()">تسجيل الدخول</button>
             </div>
         </div>
     </div>
@@ -308,11 +313,15 @@
         <div class="back-btn" onclick="showPage('auth')" id="back2">رجوع</div>
         <div class="auth-container">
             <div class="auth-title" id="signupTitle">إنشاء حساب</div>
-            <input type="text" id="reg-name" placeholder="اكتب اسمك" class="auth-input">
-            <input type="number" id="reg-age" placeholder="اكتب عمرك" class="auth-input">
-            <div class="google-btn" onclick="signup()">
-                <img src="https://cdn-icons-png.flaticon.com/512/300/300221.png">
-                <span id="googleSignupText">المواصلة باستخدام Google</span>
+            <div class="w-full space-y-2">
+                <input type="text" id="reg-name" placeholder="اكتب اسمك" class="auth-input">
+                <div class="relative">
+                    <input type="tel" id="reg-phone" placeholder="رقم الهاتف السوداني" class="auth-input pl-24 text-left" dir="ltr">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xl" dir="ltr">+249</span>
+                </div>
+                <input type="password" id="reg-password" placeholder="كلمة المرور" class="auth-input">
+                <input type="password" id="reg-confirm-password" placeholder="تكرار كلمة المرور" class="auth-input">
+                <button class="auth-btn main-btn" onclick="signupWithPhone()">إنشاء حساب</button>
             </div>
         </div>
     </div>
@@ -329,18 +338,13 @@
             </svg>
           </button>
           <div class="absolute right-6 top-8 flex items-center space-x-2">
-            <button id="btn-private-messages" class="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-90 relative">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            </button>
             <button id="btn-go-create" class="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
               </svg>
             </button>
           </div>
-          <h1 class="text-3xl font-black text-black mb-3 tracking-tighter">Nilechat sudani</h1>
+          <h1 class="text-4xl font-black text-black mb-3 tracking-tighter">Nilechat</h1>
           <h2 id="home-title" class="text-xl font-bold text-slate-800"></h2>
           
           <!-- Search Bar -->
@@ -358,8 +362,10 @@
         
         <div class="p-4 bg-white border-t border-slate-100 flex items-center justify-between px-8">
           <button id="btn-view-all" class="w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-blue-600 border-blue-600 text-white">الكل</button>
-          <button id="btn-special-feature" class="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-600 transition-all active:scale-90 flex-shrink-0">
-            <img src="https://i.pinimg.com/736x/4b/d2/1a/4bd21a9126a2b554aa2a03b07061a954.jpg" class="w-full h-full object-cover">
+          <button id="btn-private-messages" class="w-12 h-12 transition-all active:scale-90 flex-shrink-0 flex items-center justify-center text-blue-600 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
           </button>
           <button id="btn-view-my" class="w-24 py-2 rounded-3xl font-bold text-base transition-all active:scale-95 border bg-white border-slate-200 text-slate-600 hover:bg-slate-50">غرفي</button>
         </div>
@@ -420,27 +426,8 @@
                 </svg>
                 <span id="label-settings-message-self">مراسلة نفسي</span>
               </button>
-            </div>
-          </section>
 
-          <!-- Font Size Settings -->
-          <section class="space-y-6">
-            <h3 id="settings-font-title" class="text-base font-bold text-blue-600 uppercase tracking-wider">حجم الخط</h3>
-            <div class="p-8 bg-slate-50 rounded-2xl border border-slate-100 space-y-10">
-              <div class="space-y-4">
-                <input type="range" id="input-font-size" min="12" max="24" step="1" value="14" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                <div class="flex justify-between text-sm text-slate-400 font-bold px-1">
-                  <span id="label-font-very-large">كبير جداً</span>
-                  <span id="label-font-small">صغير</span>
-                </div>
-              </div>
-              
-              <div class="p-8 bg-white rounded-2xl border border-slate-100 text-center space-y-3" id="font-preview-box">
-                <p class="font-bold">Hello</p>
-                <p>مرحبا</p>
-              </div>
-
-              <button id="btn-save-font" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 text-base">حفظ التغييرات</button>
+              <button id="btn-save-settings" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 text-base">حفظ التغييرات</button>
             </div>
           </section>
         </div>
@@ -532,12 +519,17 @@
           <!-- Messages will be injected here -->
         </div>
 
-        <div class="p-4 bg-white border-t border-slate-100">
-          <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200">
+        <div id="chat-input-area" class="p-4 bg-white border-t border-slate-100">
+          <div id="message-input-container" class="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200">
             <button id="btn-send-message" class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 transition-all active:scale-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="transform: rotate(-90deg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
             </button>
             <input type="text" id="input-message" placeholder="اكتب رسالتك هنا..." class="flex-1 bg-transparent outline-none text-right px-4 text-lg font-bold">
+          </div>
+          <div id="join-room-container" class="hidden">
+            <button id="btn-confirm-join" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 text-lg">
+              انضمام للغرفة
+            </button>
           </div>
         </div>
       </div>
@@ -960,8 +952,10 @@
         avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
         showRoomsOnProfile: true
       };
+      let listenersInitialized = false;
 
       // --- Mock Firebase (Local State) ---
+      localStorage.removeItem('nc_current_user');
       const mockDb = {
         users: JSON.parse(localStorage.getItem('nc_users') || '{}'),
         rooms: JSON.parse(localStorage.getItem('nc_rooms') || '[]'),
@@ -977,6 +971,11 @@
       const auth = {
         currentUser: JSON.parse(localStorage.getItem('nc_current_user') || 'null')
       };
+      
+      // Initialize userProfile if session exists
+      if (auth.currentUser && mockDb.users[auth.currentUser.uid]) {
+        userProfile = mockDb.users[auth.currentUser.uid];
+      }
 
       const listeners = [];
       function onSnapshot(ref, callback) {
@@ -1119,7 +1118,7 @@
 
       // --- Logic ---
       (function() {
-        const splashText = "Nilechat sudani";
+        const splashText = "Nilechat";
         const splashTitle = document.getElementById("splash-title");
 
         // Populate splash title with animated spans immediately
@@ -1141,14 +1140,16 @@
         const translations = {
             ar: {
                 loginBtn: "لدي حساب بالفعل",
-                signupBtn: "إنشاء حساب جديد",
+                signupBtn: "إنشاء حساب",
                 loginTitle: "تسجيل الدخول",
                 signupTitle: "إنشاء حساب",
                 googleLogin: "تسجيل الدخول باستخدام Google",
                 googleSignup: "المواصلة باستخدام Google",
                 back: "رجوع",
                 namePlaceholder: "اكتب اسمك",
-                agePlaceholder: "اكتب عمرك",
+                phonePlaceholder: "رقم الهاتف السوداني",
+                passwordPlaceholder: "كلمة المرور",
+                confirmPasswordPlaceholder: "تكرار كلمة المرور",
                 availableRooms: "الغرف المتاحة الآن",
                 myRoomsTitle: "غرفي الخاصة",
                 searchPlaceholder: "ابحث عن اسم الغرفة أو الكود...",
@@ -1161,9 +1162,6 @@
                 bio: "النبذة الشخصية...",
                 appearance: "المظهر",
                 darkMode: "الوضع المظلم",
-                fontSize: "حجم الخط",
-                veryLarge: "كبير جداً",
-                small: "صغير",
                 saveChanges: "حفظ التغييرات",
                 createRoom: "إنشاء غرفة جديدة",
                 roomName: "اسم الغرفة",
@@ -1231,7 +1229,28 @@
                 startChat: "ابدأ الدردشة الآن",
                 privateChatWith: "دردشة مع {name}",
                 typePrivateMessage: "اكتب رسالة خاصة...",
-                lastMessage: "آخر رسالة: "
+                lastMessage: "آخر رسالة: ",
+                cropperTitle: "تعديل الصورة",
+                cropperConfirm: "تأكيد",
+                cropperCancel: "إلغاء",
+                cropperAspect: "تغيير الأبعاد",
+                confirmTitle: "تأكيد",
+                confirmYes: "نعم",
+                confirmNo: "لا",
+                vipTitle: "عضوية VIP",
+                vipBenefits: "مميزات العضوية",
+                vipBenefit1: "إنشاء غرف غير محدودة",
+                vipBenefit2: "شارة VIP ذهبية",
+                vipBenefit3: "دعم فني متميز",
+                subscribeVip: "اشترك الآن",
+                closeVip: "إغلاق",
+                packagesTitle: "الباقات",
+                closePackages: "إغلاق",
+                copyMessage: "نسخ النص",
+                editMessage: "تعديل",
+                deleteMessage: "حذف",
+                editMessagePrompt: "تعديل الرسالة:",
+                save: "حفظ"
             }
         };
 
@@ -1247,7 +1266,8 @@
             document.documentElement.dir = "rtl";
             document.documentElement.lang = "ar";
 
-            document.getElementById("inbox-title").innerText = t.inbox;
+            const inboxTitle = document.getElementById("inbox-title");
+            if (inboxTitle) inboxTitle.innerText = t.inbox;
             
             // Update Auth UI
             document.querySelectorAll(".auth-title").forEach(el => {
@@ -1256,93 +1276,197 @@
                     el.innerText = t.nilechat;
                 }
             });
-            document.getElementById("loginText").innerText = t.loginBtn;
-            document.getElementById("signupText").innerText = t.signupBtn;
-            document.getElementById("loginTitle").innerText = t.loginTitle;
-            document.getElementById("signupTitle").innerText = t.signupTitle;
-            document.getElementById("googleLoginText").innerText = t.googleLogin;
-            document.getElementById("googleSignupText").innerText = t.googleSignup;
-            document.getElementById("back1").innerText = t.back;
-            document.getElementById("back2").innerText = t.back;
-            document.getElementById("reg-name").placeholder = t.namePlaceholder;
-            document.getElementById("reg-age").placeholder = t.agePlaceholder;
+            const loginText = document.getElementById("loginText");
+            if (loginText) loginText.innerText = t.loginBtn;
+            const signupText = document.getElementById("signupText");
+            if (signupText) signupText.innerText = t.signupBtn;
+            const loginTitle = document.getElementById("loginTitle");
+            if (loginTitle) loginTitle.innerText = t.loginTitle;
+            const signupTitle = document.getElementById("signupTitle");
+            if (signupTitle) signupTitle.innerText = t.signupTitle;
+            const googleLoginText = document.getElementById("googleLoginText");
+            if (googleLoginText) googleLoginText.innerText = t.googleLogin;
+            const googleSignupText = document.getElementById("googleSignupText");
+            if (googleSignupText) googleSignupText.innerText = t.googleSignup;
+            const back1 = document.getElementById("back1");
+            if (back1) back1.innerText = t.back;
+            const back2 = document.getElementById("back2");
+            if (back2) back2.innerText = t.back;
+            const regName = document.getElementById("reg-name");
+            if (regName) regName.placeholder = t.namePlaceholder;
+            const regPhone = document.getElementById("reg-phone");
+            if (regPhone) regPhone.placeholder = t.phonePlaceholder;
+            const regPassword = document.getElementById("reg-password");
+            if (regPassword) regPassword.placeholder = t.passwordPlaceholder;
+            const regConfirmPassword = document.getElementById("reg-confirm-password");
+            if (regConfirmPassword) regConfirmPassword.placeholder = t.confirmPasswordPlaceholder;
+            const loginPhone = document.getElementById("login-phone");
+            if (loginPhone) loginPhone.placeholder = t.phonePlaceholder;
+            const loginPassword = document.getElementById("login-password");
+            if (loginPassword) loginPassword.placeholder = t.passwordPlaceholder;
 
             // Update Main App UI
             const homeTitle = document.getElementById("home-title");
             if (homeTitle) {
                 homeTitle.innerText = viewMode === 'online' ? t.availableRooms : t.myRoomsTitle;
             }
-            document.getElementById("input-search-code").placeholder = t.searchPlaceholder;
-            document.getElementById("btn-view-all").innerText = t.all;
-            document.getElementById("btn-view-my").innerText = t.myRooms;
+            const inputSearchCode = document.getElementById("input-search-code");
+            if (inputSearchCode) inputSearchCode.placeholder = t.searchPlaceholder;
+            const btnViewAll = document.getElementById("btn-view-all");
+            if (btnViewAll) btnViewAll.innerText = t.all;
+            const btnViewMy = document.getElementById("btn-view-my");
+            if (btnViewMy) btnViewMy.innerText = t.myRooms;
             
             // Settings
-            document.getElementById("settings-main-title").innerText = t.settings;
-            document.getElementById("settings-account-title").innerText = t.accountSettings;
-            document.getElementById("input-user-name").placeholder = t.name;
-            document.getElementById("input-user-age").placeholder = t.age;
-            document.getElementById("input-user-bio").placeholder = t.bio;
-            document.getElementById("settings-appearance-title").innerText = t.appearance;
-            document.getElementById("label-dark-mode").innerText = t.darkMode;
-            
-            document.getElementById("settings-font-title").innerText = t.fontSize;
-            document.getElementById("label-font-very-large").innerText = t.veryLarge;
-            document.getElementById("label-font-small").innerText = t.small;
-            document.getElementById("btn-save-font").innerText = t.saveChanges;
+            const settingsMainTitle = document.getElementById("settings-main-title");
+            if (settingsMainTitle) settingsMainTitle.innerText = t.settings;
+            const settingsAccountTitle = document.getElementById("settings-account-title");
+            if (settingsAccountTitle) settingsAccountTitle.innerText = t.accountSettings;
+            const inputUserName = document.getElementById("input-user-name");
+            if (inputUserName) inputUserName.placeholder = t.name;
+            const inputUserAge = document.getElementById("input-user-age");
+            if (inputUserAge) inputUserAge.placeholder = t.age;
+            const inputUserBio = document.getElementById("input-user-bio");
+            if (inputUserBio) inputUserBio.placeholder = t.bio;
+            const settingsAppearanceTitle = document.getElementById("settings-appearance-title");
+            if (settingsAppearanceTitle) settingsAppearanceTitle.innerText = t.appearance;
+            const labelDarkMode = document.getElementById("label-dark-mode");
+            if (labelDarkMode) labelDarkMode.innerText = t.darkMode;
+            const btnSaveSettings = document.getElementById("btn-save-settings");
+            if (btnSaveSettings) btnSaveSettings.innerText = t.saveChanges;
 
             // Create Room
-            document.getElementById("create-room-title").innerText = t.createRoom;
-            document.getElementById("label-room-name").innerText = t.roomName;
-            document.getElementById("input-room-name").placeholder = t.roomNamePlaceholder;
-            document.getElementById("label-max-users").innerText = t.maxUsers;
-            document.getElementById("label-room-type").innerText = t.roomType;
-            document.getElementById("btn-type-public").innerText = t.public;
-            document.getElementById("btn-type-private").innerText = t.private;
-            document.getElementById("label-room-image").innerText = t.roomImage;
-            document.getElementById("label-room-code").innerText = t.roomCode;
-            document.getElementById("btn-cancel-create").innerText = t.cancel;
-            document.getElementById("btn-finish-create").innerHTML = `${t.next} <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>`;
+            const createRoomTitle = document.getElementById("create-room-title");
+            if (createRoomTitle) createRoomTitle.innerText = t.createRoom;
+            const labelRoomName = document.getElementById("label-room-name");
+            if (labelRoomName) labelRoomName.innerText = t.roomName;
+            const inputRoomName = document.getElementById("input-room-name");
+            if (inputRoomName) inputRoomName.placeholder = t.roomNamePlaceholder;
+            const labelMaxUsers = document.getElementById("label-max-users");
+            if (labelMaxUsers) labelMaxUsers.innerText = t.maxUsers;
+            const labelRoomType = document.getElementById("label-room-type");
+            if (labelRoomType) labelRoomType.innerText = t.roomType;
+            const btnTypePublic = document.getElementById("btn-type-public");
+            if (btnTypePublic) btnTypePublic.innerText = t.public;
+            const btnTypePrivate = document.getElementById("btn-type-private");
+            if (btnTypePrivate) btnTypePrivate.innerText = t.private;
+            const labelRoomImage = document.getElementById("label-room-image");
+            if (labelRoomImage) labelRoomImage.innerText = t.roomImage;
+            const labelRoomCode = document.getElementById("label-room-code");
+            if (labelRoomCode) labelRoomCode.innerText = t.roomCode;
+            const btnCancelCreate = document.getElementById("btn-cancel-create");
+            if (btnCancelCreate) btnCancelCreate.innerText = t.cancel;
+            const btnFinishCreate = document.getElementById("btn-finish-create");
+            if (btnFinishCreate) btnFinishCreate.innerHTML = `${t.next} <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>`;
 
             // Chat
             const exitSpan = document.querySelector("#btn-exit-chat span");
             if (exitSpan) exitSpan.innerText = t.exit;
             const exitPrivateSpan = document.querySelector("#btn-exit-private-chat span");
             if (exitPrivateSpan) exitPrivateSpan.innerText = t.exit;
-            document.getElementById("input-message").placeholder = t.typeMessage;
-            document.getElementById("input-private-message").placeholder = t.typePrivateMessage;
-            if (document.getElementById("chat-room-name").innerText === "اسم الغرفة" || document.getElementById("chat-room-name").innerText === "Room Name") {
-                document.getElementById("chat-room-name").innerText = t.roomName;
+            const inputMessage = document.getElementById("input-message");
+            if (inputMessage) inputMessage.placeholder = t.typeMessage;
+            const inputPrivateMessage = document.getElementById("input-private-message");
+            if (inputPrivateMessage) inputPrivateMessage.placeholder = t.typePrivateMessage;
+            const chatRoomName = document.getElementById("chat-room-name");
+            if (chatRoomName && (chatRoomName.innerText === "اسم الغرفة" || chatRoomName.innerText === "Room Name")) {
+                chatRoomName.innerText = t.roomName;
             }
 
             // Room Settings
-            document.getElementById("room-settings-title").innerText = t.roomSettings;
-            document.getElementById("label-edit-room-name").innerText = t.roomName;
-            document.getElementById("label-edit-max-users").innerText = t.maxUsers;
-            document.getElementById("label-edit-room-code").innerText = t.roomCode;
-            document.getElementById("btn-save-room-settings").innerText = t.saveRoomSettings;
-            document.getElementById("btn-copy-room-code").title = t.copyCode;
+            const roomSettingsTitle = document.getElementById("room-settings-title");
+            if (roomSettingsTitle) roomSettingsTitle.innerText = t.roomSettings;
+            const labelEditRoomName = document.getElementById("label-edit-room-name");
+            if (labelEditRoomName) labelEditRoomName.innerText = t.roomName;
+            const labelEditMaxUsers = document.getElementById("label-edit-max-users");
+            if (labelEditMaxUsers) labelEditMaxUsers.innerText = t.maxUsers;
+            const labelEditRoomCode = document.getElementById("label-edit-room-code");
+            if (labelEditRoomCode) labelEditRoomCode.innerText = t.roomCode;
+            const btnSaveRoomSettings = document.getElementById("btn-save-room-settings");
+            if (btnSaveRoomSettings) btnSaveRoomSettings.innerText = t.saveRoomSettings;
+            const btnCopyRoomCode = document.getElementById("btn-copy-room-code");
+            if (btnCopyRoomCode) btnCopyRoomCode.title = t.copyCode;
 
             // Modals
-            document.getElementById("modal-user-actions-title").innerText = t.userActions;
-            document.getElementById("label-action-remove").innerText = t.removeFromRoom;
-            document.getElementById("label-action-profile").innerText = t.profile;
-            document.getElementById("btn-close-actions").innerText = t.cancel;
-            document.getElementById("label-profile-bio").innerText = t.bioLabel;
-            document.getElementById("label-show-rooms-on-profile").innerText = t.showRoomsOnProfileLabel;
-            document.getElementById("modal-room-members-title").innerText = t.roomMembersTitle;
-            document.getElementById("btn-close-notice").innerText = t.ok;
-            document.getElementById("notice-modal-message").innerText = t.noticeTitle;
-            document.querySelector("#font-preview-box p:nth-of-type(2)").innerText = t.hello;
+            const modalUserActionsTitle = document.getElementById("modal-user-actions-title");
+            if (modalUserActionsTitle) modalUserActionsTitle.innerText = t.userActions;
+            const labelActionRemove = document.getElementById("label-action-remove");
+            if (labelActionRemove) labelActionRemove.innerText = t.removeFromRoom;
+            const labelActionProfile = document.getElementById("label-action-profile");
+            if (labelActionProfile) labelActionProfile.innerText = t.profile;
+            const btnCloseActions = document.getElementById("btn-close-actions");
+            if (btnCloseActions) btnCloseActions.innerText = t.cancel;
+            const labelProfileBio = document.getElementById("label-profile-bio");
+            if (labelProfileBio) labelProfileBio.innerText = t.bioLabel;
+            const labelShowRoomsOnProfile = document.getElementById("label-show-rooms-on-profile");
+            if (labelShowRoomsOnProfile) labelShowRoomsOnProfile.innerText = t.showRoomsOnProfileLabel;
+            const modalRoomMembersTitle = document.getElementById("modal-room-members-title");
+            if (modalRoomMembersTitle) modalRoomMembersTitle.innerText = t.roomMembersTitle;
+            const btnCloseNotice = document.getElementById("btn-close-notice");
+            if (btnCloseNotice) btnCloseNotice.innerText = t.ok;
+            const noticeModalMessage = document.getElementById("notice-modal-message");
+            if (noticeModalMessage) noticeModalMessage.innerText = t.noticeTitle;
             
-            if (document.getElementById("profile-modal-name").innerText === "الاسم" || document.getElementById("profile-modal-name").innerText === "Name") {
-                document.getElementById("profile-modal-name").innerText = t.profileName;
+            const profileModalName = document.getElementById("profile-modal-name");
+            if (profileModalName && (profileModalName.innerText === "الاسم" || profileModalName.innerText === "Name")) {
+                profileModalName.innerText = t.profileName;
             }
-            if (document.getElementById("profile-modal-age").innerText === "العمر" || document.getElementById("profile-modal-age").innerText === "Age") {
-                document.getElementById("profile-modal-age").innerText = t.profileAge;
+            const profileModalAge = document.getElementById("profile-modal-age");
+            if (profileModalAge && (profileModalAge.innerText === "العمر" || profileModalAge.innerText === "Age")) {
+                profileModalAge.innerText = t.profileAge;
             }
-            if (document.getElementById("profile-modal-bio").innerText === "لا توجد نبذة متوفرة." || document.getElementById("profile-modal-bio").innerText === "No bio available.") {
-                document.getElementById("profile-modal-bio").innerText = t.noBio;
+            const profileModalBio = document.getElementById("profile-modal-bio");
+            if (profileModalBio && (profileModalBio.innerText === "لا توجد نبذة متوفرة." || profileModalBio.innerText === "No bio available.")) {
+                profileModalBio.innerText = t.noBio;
             }
+
+            // Cropper
+            const cropperTitle = document.getElementById("cropper-title");
+            if (cropperTitle) cropperTitle.innerText = t.cropperTitle;
+            const btnCropperCancel = document.getElementById("btn-cropper-cancel");
+            if (btnCropperCancel) btnCropperCancel.innerText = t.cropperCancel;
+            const btnCropperConfirm = document.getElementById("btn-cropper-confirm");
+            if (btnCropperConfirm) btnCropperConfirm.innerText = t.cropperConfirm;
+            const btnCropperAspect = document.getElementById("btn-cropper-aspect");
+            if (btnCropperAspect) btnCropperAspect.innerText = t.cropperAspect;
+
+            // Confirm Modal
+            const modalConfirmTitle = document.getElementById("modal-confirm-title");
+            if (modalConfirmTitle) modalConfirmTitle.innerText = t.confirmTitle;
+            const btnConfirmYes = document.getElementById("btn-confirm-yes");
+            if (btnConfirmYes) btnConfirmYes.innerText = t.confirmYes;
+            const btnConfirmNo = document.getElementById("btn-confirm-no");
+            if (btnConfirmNo) btnConfirmNo.innerText = t.confirmNo;
+
+            // VIP Modal
+            const modalVipTitle = document.getElementById("modal-vip-title");
+            if (modalVipTitle) modalVipTitle.innerText = t.vipTitle;
+            const labelVipBenefits = document.getElementById("label-vip-benefits");
+            if (labelVipBenefits) labelVipBenefits.innerText = t.vipBenefits;
+            const btnSubscribeVip = document.getElementById("btn-subscribe-vip");
+            if (btnSubscribeVip) btnSubscribeVip.innerText = t.subscribeVip;
+            const btnCloseVip = document.getElementById("btn-close-vip");
+            if (btnCloseVip) btnCloseVip.innerText = t.closeVip;
+
+            // Packages Modal
+            const modalPackagesTitle = document.getElementById("modal-packages-title");
+            if (modalPackagesTitle) modalPackagesTitle.innerText = t.packagesTitle;
+            const btnClosePackages = document.getElementById("btn-close-packages");
+            if (btnClosePackages) btnClosePackages.innerText = t.closePackages;
+
+            // Context Menu
+            const btnCopyMessageAction = document.getElementById("btn-copy-message-action");
+            if (btnCopyMessageAction) btnCopyMessageAction.innerText = t.copyMessage;
+            const btnEditMessageAction = document.getElementById("btn-edit-message-action");
+            if (btnEditMessageAction) btnEditMessageAction.innerText = t.editMessage;
+            const btnDeleteMessageAction = document.getElementById("btn-delete-message-action");
+            if (btnDeleteMessageAction) btnDeleteMessageAction.innerText = t.deleteMessage;
+
+            // Room Settings extra
+            const btnDeleteRoom = document.getElementById("btn-delete-room");
+            if (btnDeleteRoom) btnDeleteRoom.innerText = t.deleteRoom;
+            const labelMuteUsers = document.getElementById("label-mute-users");
+            if (labelMuteUsers) labelMuteUsers.innerText = t.muteUsersLabel;
 
             // Update Document Title
             document.title = "دردشة الغرف - الكل في واحد";
@@ -1360,9 +1484,21 @@
             }
         };
 
-        function enterApp() {
+        window.enterApp = function() {
+            if (!userProfile.uid) {
+                userProfile.uid = 'guest_' + Math.random().toString(36).substring(2, 10);
+                userProfile.name = translations.ar.defaultUserName;
+                mockDb.users[userProfile.uid] = userProfile;
+                saveMockDb();
+                
+                // Save guest session
+                const guestUser = { uid: userProfile.uid, displayName: userProfile.name, isGuest: true };
+                auth.currentUser = guestUser;
+                localStorage.setItem('nc_current_user', JSON.stringify(guestUser));
+            }
             showPage('app-container');
             renderRooms();
+            setupRealtimeListeners();
         }
 
         let cropperInstance = null;
@@ -1388,7 +1524,6 @@
           userAge: document.getElementById('input-user-age'),
           userBio: document.getElementById('input-user-bio'),
           avatar: document.getElementById('input-avatar'),
-          fontSize: document.getElementById('input-font-size'),
           editRoomName: document.getElementById('input-edit-room-name'),
           editRoomMaxMembers: document.getElementById('input-edit-room-max-members'),
           roomMaxMembers: document.getElementById('input-room-max-members'),
@@ -1402,7 +1537,6 @@
           chatRoomName: document.getElementById('chat-room-name'),
           chatRoomCode: document.getElementById('chat-room-code'),
           avatarPreview: document.getElementById('settings-avatar-preview'),
-          fontPreviewBox: document.getElementById('font-preview-box'),
           roomSettingsImagePreview: document.getElementById('room-settings-image-preview'),
           createRoomImagePreview: document.getElementById('create-room-image-preview'),
           chatRoomImage: document.getElementById('chat-room-image'),
@@ -1439,12 +1573,13 @@
           modalPackages: document.getElementById('modal-packages'),
           packagesModalContent: document.getElementById('packages-modal-content'),
           modalVip: document.getElementById('modal-vip'),
-          vipModalContent: document.getElementById('vip-modal-content')
+          vipModalContent: document.getElementById('vip-modal-content'),
+          messageInputContainer: document.getElementById('message-input-container'),
+          joinRoomContainer: document.getElementById('join-room-container')
         };
         const buttons = {
           viewAll: document.getElementById('btn-view-all'),
           viewMy: document.getElementById('btn-view-my'),
-          specialFeature: document.getElementById('btn-special-feature'),
           closePackages: document.getElementById('btn-close-packages'),
           closeVip: document.getElementById('btn-close-vip'),
           subscribeVip: document.getElementById('btn-subscribe-vip'),
@@ -1456,10 +1591,11 @@
           typePrivate: document.getElementById('btn-type-private'),
           exitChat: document.getElementById('btn-exit-chat'),
           sendMessage: document.getElementById('btn-send-message'),
+          confirmJoin: document.getElementById('btn-confirm-join'),
           openSettings: document.getElementById('btn-open-settings'),
           settingsBack: document.getElementById('btn-settings-back'),
           toggleDark: document.getElementById('btn-toggle-dark'),
-          saveFont: document.getElementById('btn-save-font'),
+          saveSettings: document.getElementById('btn-save-settings'),
           toggleShowRooms: document.getElementById('btn-toggle-show-rooms'),
           viewMembers: document.getElementById('btn-view-members'),
           closeMembers: document.getElementById('btn-close-members'),
@@ -1512,7 +1648,6 @@
               saveMockDb();
             }
             targetPage = 'app-container';
-            setupRealtimeListeners();
           }
 
           // Ensure splash is visible for at least 3 seconds to show animation
@@ -1540,6 +1675,8 @@
         });
 
         function setupRealtimeListeners() {
+          if (listenersInitialized) return;
+          listenersInitialized = true;
           // Listen for Rooms
           onSnapshot(collection(db, 'rooms'), (snapshot) => {
             onlineRooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1550,7 +1687,7 @@
             if (activeRoomId) {
               const currentRoom = onlineRooms.find(r => r.id === activeRoomId);
               if (currentRoom) {
-                displays.chatRoomName.innerText = currentRoom.name;
+                if (displays.chatRoomName) displays.chatRoomName.innerText = currentRoom.name;
                 if (currentRoom.image) {
                   displays.chatRoomImage.src = currentRoom.image;
                   displays.chatRoomImage.classList.remove('hidden');
@@ -1559,6 +1696,17 @@
                   displays.chatRoomImage.classList.add('hidden');
                   displays.chatRoomIcon.classList.remove('hidden');
                 }
+
+                // Update membership UI
+                const isMember = currentRoom.membersList && currentRoom.membersList.find(m => m.uid === userProfile.uid);
+                if (isMember) {
+                  displays.messageInputContainer.classList.remove('hidden');
+                  displays.joinRoomContainer.classList.add('hidden');
+                } else {
+                  displays.messageInputContainer.classList.add('hidden');
+                  displays.joinRoomContainer.classList.remove('hidden');
+                }
+                buttons.viewMembers.classList.remove('hidden');
               }
             }
           });
@@ -1600,9 +1748,32 @@
         }
         window.login = login;
 
+        async function loginWithPhone() {
+          const phone = document.getElementById('login-phone').value.trim();
+          const password = document.getElementById('login-password').value.trim();
+          
+          if (!phone || !password) {
+            alert("يرجى إدخال رقم الهاتف وكلمة المرور");
+            return;
+          }
+
+          const fullPhone = "+249" + phone;
+          // Find user in mockDb
+          const userEntry = Object.values(mockDb.users).find(u => u.phone === fullPhone && u.password === password);
+          
+          if (userEntry) {
+            auth.currentUser = { uid: userEntry.uid, displayName: userEntry.name };
+            localStorage.setItem('nc_current_user', JSON.stringify(auth.currentUser));
+            notifyAuthChange();
+            enterApp();
+          } else {
+            alert("رقم الهاتف أو كلمة المرور غير صحيحة");
+          }
+        }
+        window.loginWithPhone = loginWithPhone;
+
         async function signup() {
           const name = document.getElementById('reg-name').value.trim();
-          const age = document.getElementById('reg-age').value.trim();
           if (!name) return;
           
           try {
@@ -1611,7 +1782,7 @@
             userProfile = {
               uid: user.uid,
               name: name,
-              age: age,
+              age: '',
               bio: '',
               avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
               showRoomsOnProfile: true
@@ -1621,6 +1792,54 @@
             console.error("Signup error:", error);
           }
         }
+        window.signup = signup;
+
+        async function signupWithPhone() {
+          const name = document.getElementById('reg-name').value.trim();
+          const phone = document.getElementById('reg-phone').value.trim();
+          const password = document.getElementById('reg-password').value.trim();
+          const confirmPassword = document.getElementById('reg-confirm-password').value.trim();
+
+          if (!name || !phone || !password || !confirmPassword) {
+            alert("يرجى ملء جميع الحقول");
+            return;
+          }
+
+          if (password !== confirmPassword) {
+            alert("كلمات المرور غير متطابقة");
+            return;
+          }
+
+          const fullPhone = "+249" + phone;
+          
+          // Check if user already exists
+          const existingUser = Object.values(mockDb.users).find(u => u.phone === fullPhone);
+          if (existingUser) {
+            alert("هذا الرقم مسجل بالفعل");
+            return;
+          }
+
+          const uid = 'phone_' + Math.random().toString(36).substring(2, 10);
+          userProfile = {
+            uid: uid,
+            name: name,
+            phone: fullPhone,
+            password: password,
+            age: '',
+            bio: '',
+            avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
+            showRoomsOnProfile: true
+          };
+
+          mockDb.users[uid] = userProfile;
+          saveMockDb();
+
+          auth.currentUser = { uid: uid, displayName: name };
+          localStorage.setItem('nc_current_user', JSON.stringify(auth.currentUser));
+          notifyAuthChange();
+          enterApp();
+        }
+        window.signupWithPhone = signupWithPhone;
         function logout() {
           auth.currentUser = null;
           localStorage.removeItem('nc_current_user');
@@ -1628,7 +1847,6 @@
         }
         window.logout = logout;
         let isDarkMode = false;
-        let currentFontSize = 14;
         // Utils
         function generateCode() {
           return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -1758,7 +1976,7 @@
             }
 
             const isMe = msg.senderUid === userProfile.uid;
-            div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'justify-start flex-row-reverse' : 'justify-end flex-row'}`;
+            div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'flex-row justify-start' : 'flex-row-reverse justify-start'}`;
             
             const senderInfo = isMe ? userProfile : (msg.senderInfo || {
               uid: 'other',
@@ -1838,36 +2056,25 @@
         // Actions
         async function joinRoom(room) {
           isPrivateMode = false;
-          // Check if room is full
-          if (room.creatorUid !== userProfile.uid && room.maxMembers && room.members >= room.maxMembers) {
-            showNotice(translations.ar.roomFull);
-            return;
-          }
-
           activeRoomId = room.id;
           
-          // Add to membersList in mock
           const dbRoom = mockDb.rooms.find(r => r.id === room.id);
-          if (dbRoom) {
-            if (!dbRoom.membersList) dbRoom.membersList = [];
-            if (!dbRoom.membersList.find(m => m.uid === userProfile.uid)) {
-              dbRoom.membersList.push(userProfile);
-              dbRoom.members = dbRoom.membersList.length;
-              saveMockDb();
-              notifyListeners('rooms');
-            }
-          }
-
-          displays.chatRoomName.innerText = room.name;
-          displays.chatRoomCode.innerText = `#${room.code}`;
+          const isMember = dbRoom && dbRoom.membersList && dbRoom.membersList.find(m => m.uid === userProfile.uid);
           
-          // Show members button if creator
-          if (room.creatorUid === userProfile.uid) {
-            buttons.viewMembers.classList.remove('hidden');
+          if (isMember) {
+            displays.messageInputContainer.classList.remove('hidden');
+            displays.joinRoomContainer.classList.add('hidden');
           } else {
-            buttons.viewMembers.classList.add('hidden');
+            displays.messageInputContainer.classList.add('hidden');
+            displays.joinRoomContainer.classList.remove('hidden');
           }
-
+          
+          // Show members button for everyone
+          buttons.viewMembers.classList.remove('hidden');
+          
+          if (displays.chatRoomName) displays.chatRoomName.innerText = room.name;
+          if (displays.chatRoomCode) displays.chatRoomCode.innerText = `#${room.code}`;
+          
           if (room.image) {
             displays.chatRoomImage.src = room.image;
             displays.chatRoomImage.classList.remove('hidden');
@@ -1877,11 +2084,8 @@
             displays.chatRoomIcon.classList.remove('hidden');
           }
 
-          if (room.creatorUid === userProfile.uid) {
-            buttons.chatHeader.classList.add('hover:bg-slate-50', 'cursor-pointer');
-          } else {
-            buttons.chatHeader.classList.remove('hover:bg-slate-50', 'cursor-pointer');
-          }
+          // Enable header interaction for everyone
+          buttons.chatHeader.classList.add('hover:bg-slate-50', 'cursor-pointer');
 
           // Handle Muted State
           if (room.isMuted && room.creatorUid !== userProfile.uid) {
@@ -1917,10 +2121,38 @@
           showScreen('chat');
         }
 
+        async function confirmJoinRoom() {
+          if (!activeRoomId) return;
+          const room = onlineRooms.find(r => r.id === activeRoomId);
+          if (!room) return;
+
+          // Check if room is full
+          if (room.creatorUid !== userProfile.uid && room.maxMembers && room.members >= room.maxMembers) {
+            showNotice(translations.ar.roomFull);
+            return;
+          }
+
+          const dbRoom = mockDb.rooms.find(r => r.id === activeRoomId);
+          if (dbRoom) {
+            if (!dbRoom.membersList) dbRoom.membersList = [];
+            if (!dbRoom.membersList.find(m => m.uid === userProfile.uid)) {
+              dbRoom.membersList.push(userProfile);
+              dbRoom.members = dbRoom.membersList.length;
+              saveMockDb();
+              notifyListeners('rooms');
+              
+              // Update UI
+              displays.messageInputContainer.classList.remove('hidden');
+              displays.joinRoomContainer.classList.add('hidden');
+              buttons.viewMembers.classList.remove('hidden');
+            }
+          }
+        }
+
         async function createRoom() {
           const name = inputs.roomName.value.trim();
           if (!name) return;
-          const code = displays.roomCode.innerText;
+          const code = displays.roomCode ? displays.roomCode.innerText : '';
           const welcomeText = translations.ar.welcomeMessage.replace('{name}', name);
           
           const newRoom = {
@@ -2038,11 +2270,6 @@
           }
         }
 
-        function updateFontPreview() {
-          const size = inputs.fontSize.value;
-          displays.fontPreviewBox.style.fontSize = `${size}px`;
-        }
-
         async function saveSettings() {
           // Save Profile
           userProfile.name = inputs.userName.value || userProfile.name;
@@ -2055,11 +2282,6 @@
             console.error("Save settings error:", error);
           }
           
-          // Save Font Size
-          currentFontSize = inputs.fontSize.value;
-          document.documentElement.style.setProperty('--base-font-size', `${currentFontSize}px`);
-          localStorage.setItem('nilechat_font_size', currentFontSize);
-          
           showScreen('home');
           renderRooms();
         }
@@ -2070,7 +2292,7 @@
           
           inputs.editRoomName.value = room.name;
           inputs.editRoomMaxMembers.value = room.maxMembers || 50;
-          displays.displayEditRoomCode.innerText = room.code;
+          if (displays.displayEditRoomCode) displays.displayEditRoomCode.innerText = room.code;
           displays.roomSettingsImagePreview.src = room.image || 'https://via.placeholder.com/150?text=Room';
           
           // Mute Users Toggle
@@ -2127,9 +2349,9 @@
         function showUserProfile(profile) {
           selectedUserProfile = profile;
           displays.profileModalAvatar.src = profile.avatar;
-          displays.profileModalName.innerText = profile.name;
-          displays.profileModalAge.innerText = profile.age ? `${profile.age} ${translations.ar.years}` : '';
-          displays.profileModalBio.innerText = profile.bio || translations.ar.noBio;
+          if (displays.profileModalName) displays.profileModalName.innerText = profile.name;
+          if (displays.profileModalAge) displays.profileModalAge.innerText = profile.age ? `${profile.age} ${translations.ar.years}` : '';
+          if (displays.profileModalBio) displays.profileModalBio.innerText = profile.bio || translations.ar.noBio;
           
           // Render user's public rooms
           displays.profileModalRooms.innerHTML = '';
@@ -2140,7 +2362,7 @@
           } else {
             displays.labelUserRooms.classList.remove('hidden');
             displays.profileModalRooms.classList.remove('hidden');
-            displays.labelUserRooms.innerText = translations.ar.userRoomsTitle;
+            if (displays.labelUserRooms) displays.labelUserRooms.innerText = translations.ar.userRoomsTitle;
 
             const userRooms = onlineRooms.filter(r => r.creatorUid === profile.uid && !r.isPrivate);
             
@@ -2164,7 +2386,7 @@
           }
 
           const isMe = profile.uid === userProfile.uid;
-          displays.labelMessageUser.innerText = isMe ? translations.ar.messageYourself : translations.ar.messageUser;
+          if (displays.labelMessageUser) displays.labelMessageUser.innerText = isMe ? translations.ar.messageYourself : translations.ar.messageUser;
           
           displays.modalUserProfile.classList.remove('hidden');
           setTimeout(() => {
@@ -2273,7 +2495,7 @@
         }
 
         function showNotice(message) {
-          displays.noticeModalMessage.innerText = message;
+          if (displays.noticeModalMessage) displays.noticeModalMessage.innerText = message;
           displays.modalNotice.classList.remove('hidden');
           setTimeout(() => {
             displays.modalNotice.classList.add('opacity-100');
@@ -2290,7 +2512,7 @@
         }
 
         function showConfirm(message, onConfirm) {
-          displays.confirmModalMessage.innerText = message;
+          if (displays.confirmModalMessage) displays.confirmModalMessage.innerText = message;
           displays.modalConfirm.classList.remove('hidden');
           setTimeout(() => {
             displays.modalConfirm.classList.add('opacity-100');
@@ -2405,8 +2627,8 @@
           }
           
           if (!msg) return;
-
-          const newText = prompt("تعديل الرسالة:", msg.text);
+          const t = translations.ar;
+          const newText = prompt(t.editMessagePrompt, msg.text);
           if (newText === null || newText.trim() === "") return;
 
           try {
@@ -2433,26 +2655,17 @@
         }
 
         function copyRoomCode() {
-          const code = displays.displayEditRoomCode.innerText;
+          const code = displays.displayEditRoomCode ? displays.displayEditRoomCode.innerText : '';
           navigator.clipboard.writeText(code).then(() => {
-            const originalText = displays.displayEditRoomCode.innerText;
-            displays.displayEditRoomCode.innerText = translations.ar.copied;
+            const originalText = displays.displayEditRoomCode ? displays.displayEditRoomCode.innerText : '';
+            if (displays.displayEditRoomCode) displays.displayEditRoomCode.innerText = translations.ar.copied;
             displays.displayEditRoomCode.classList.replace('text-slate-600', 'text-green-600');
             setTimeout(() => {
-              displays.displayEditRoomCode.innerText = originalText;
+              if (displays.displayEditRoomCode) displays.displayEditRoomCode.innerText = originalText;
               displays.displayEditRoomCode.classList.replace('text-green-600', 'text-slate-600');
             }, 2000);
           });
         }
-
-        buttons.specialFeature.onclick = () => {
-          displays.modalPackages.classList.remove('hidden');
-          setTimeout(() => {
-            displays.modalPackages.classList.add('opacity-100');
-            displays.packagesModalContent.classList.remove('scale-90');
-            displays.packagesModalContent.classList.add('scale-100');
-          }, 10);
-        };
 
         buttons.closePackages.onclick = () => {
           displays.modalPackages.classList.remove('opacity-100');
@@ -2507,7 +2720,7 @@
             return;
           }
           inputs.roomName.value = '';
-          displays.roomCode.innerText = generateCode();
+          if (displays.roomCode) displays.roomCode.innerText = generateCode();
           displays.createRoomImagePreview.src = 'https://via.placeholder.com/150?text=Room';
           isPrivateMode = false;
           buttons.typePublic.click();
@@ -2542,6 +2755,7 @@
           buttons.typePublic.className = "flex-1 py-3 rounded-xl border text-sm font-bold transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
         };
         buttons.finishCreate.onclick = createRoom;
+        buttons.confirmJoin.onclick = confirmJoinRoom;
         buttons.sendMessage.onmousedown = buttons.sendMessage.ontouchstart = (e) => {
           e.preventDefault();
           sendMessage();
@@ -2559,8 +2773,6 @@
           inputs.userAge.value = userProfile.age;
           inputs.userBio.value = userProfile.bio;
           displays.avatarPreview.src = userProfile.avatar;
-          inputs.fontSize.value = currentFontSize;
-          updateFontPreview();
           updateShowRoomsToggle();
           showScreen('settings');
         };
@@ -2572,13 +2784,18 @@
           showRoomMembers();
         };
         buttons.closeMembers.onclick = closeRoomMembers;
-        inputs.fontSize.oninput = updateFontPreview;
-        buttons.saveFont.onclick = saveSettings;
+        buttons.saveSettings.onclick = saveSettings;
 
         buttons.chatHeader.onclick = (e) => {
-          // Only open settings if clicking on the room info part, not the buttons
+          // Only open settings/members if clicking on the room info part, not the buttons
           if (e.target.closest('button')) return;
-          openRoomSettings();
+          
+          const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
+          if (room && room.creatorUid === userProfile.uid) {
+            openRoomSettings();
+          } else {
+            showRoomMembers();
+          }
         };
         buttons.roomSettingsBack.onclick = () => showScreen('chat');
         buttons.deleteRoom.onclick = () => {
@@ -2682,7 +2899,7 @@
           isPrivateMode = true;
           displays.privateChatAvatar.src = user.avatar;
           const isMe = user.uid === userProfile.uid;
-          displays.privateChatName.innerText = isMe ? translations.ar.messageYourself : user.name;
+          if (displays.privateChatName) displays.privateChatName.innerText = isMe ? translations.ar.messageYourself : user.name;
           document.getElementById('private-chat-status').classList.toggle('hidden', isMe);
           
           renderPrivateMessages();
@@ -2703,7 +2920,7 @@
             const animationClass = (isLast && shouldAnimateLast) ? 'message-appear' : '';
             const isMe = msg.fromUid === userProfile.uid;
             
-            div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'justify-start flex-row-reverse' : 'justify-end flex-row'}`;
+            div.className = `flex items-end gap-2 ${animationClass} group ${isMe ? 'flex-row justify-start' : 'flex-row-reverse justify-start'}`;
             
             const senderInfo = isMe ? userProfile : conv.user;
             const avatarHtml = isMe ? '' : `
@@ -2967,11 +3184,6 @@
         window.addEventListener('resize', setVh);
         setVh();
 
-        const savedFontSize = localStorage.getItem('nilechat_font_size');
-        if (savedFontSize) {
-          currentFontSize = savedFontSize;
-          document.documentElement.style.setProperty('--base-font-size', `${currentFontSize}px`);
-        }
         updateAppLanguage();
         renderRooms();
 
