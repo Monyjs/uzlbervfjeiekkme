@@ -67,9 +67,27 @@
       .dark-mode #btn-close-vip { background-color: #444444 !important; color: #cccccc !important; }
       .dark-mode #btn-go-create { color: white !important; }
       
+      .dark-mode .sender-bubble {
+        color: white !important;
+      }
+      
       #chat-messages, #private-chat-messages {
-        background-image: url("https://www.transparenttextures.com/patterns/dark-matter.png");
-        background-size: 300px;
+        background-color: #ffffff; /* Pure white */
+        scroll-behavior: smooth;
+        transition: background-color 0.3s;
+      }
+      
+      .dark-mode #chat-messages, .dark-mode #private-chat-messages {
+        background-color: #000000 !important; /* Pure black */
+      }
+      
+      #inbox-list {
+        background-color: #ffffff;
+        transition: background-color 0.3s;
+      }
+      
+      .dark-mode #inbox-list {
+        background-color: #000000 !important;
       }
       
       /* Font Size Scaling */
@@ -115,14 +133,49 @@
       }
       
       @keyframes messageAppear {
-        from { opacity: 0; transform: translateY(20px) scale(0.9); }
+        from { opacity: 0; transform: translateY(10px) scale(0.95); }
         to { opacity: 1; transform: translateY(0) scale(1); }
       }
       .message-appear {
-        animation: messageAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: messageAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+      
+      .message-bubble {
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .message-bubble:active {
+        transform: scale(0.95);
+      }
+      
+      .sender-bubble {
+        background: linear-gradient(135deg, #ff8c00 0%, #ff1493 50%, #8a2be2 100%);
+        color: black;
+        box-shadow: 0 4px 15px rgba(255, 20, 147, 0.2);
+      }
+      
+      .truncate-message {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
       }
 
-      /* Range Input Styling */
+      #chat-input-area, #private-chat-input-area {
+        transition: padding-bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        will-change: padding-bottom;
+      }
+      
+      /* Mobile Keyboard Fix */
+      @media (max-width: 640px) {
+        body {
+          height: 100%;
+          overflow: hidden;
+          width: 100%;
+        }
+      }
+      
       input[type=range] {
         -webkit-appearance: none;
         width: 100%;
@@ -150,7 +203,7 @@
 
       /* Auth & Splash Styles */
       .page {
-          display: none;
+          display: none !important;
           height: 100vh;
           width: 100%;
           justify-content: center;
@@ -159,7 +212,7 @@
           z-index: 50;
       }
       .page.active {
-          display: flex;
+          display: flex !important;
       }
       .auth-container {
           width: 100%;
@@ -281,7 +334,7 @@
       }
     </style>
   </head>
-  <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col overflow-hidden transition-colors duration-300">
+  <body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden transition-colors duration-300">
     
     <!-- 🔵 Splash -->
     <div id="splash" class="page active">
@@ -307,12 +360,10 @@
         <div class="auth-container">
             <div class="auth-title" id="loginTitle">تسجيل الدخول</div>
             <div class="w-full space-y-2">
-                <div class="relative">
-                    <input type="tel" id="login-phone" placeholder="رقم الهاتف" class="auth-input pl-24 text-left" dir="ltr">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xl" dir="ltr">+249</span>
-                </div>
-                <input type="password" id="login-password" placeholder="كلمة المرور" class="auth-input">
-                <button class="auth-btn main-btn" onclick="loginWithPhone()">تسجيل الدخول</button>
+                <button class="google-btn" onclick="loginWithGoogle()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
+                    <span>الدخول باستخدام Google</span>
+                </button>
             </div>
         </div>
     </div>
@@ -323,23 +374,15 @@
         <div class="auth-container">
             <div class="auth-title" id="signupTitle">إنشاء حساب</div>
             <div class="w-full space-y-2">
-                <div class="relative">
-                    <input type="tel" id="reg-phone" placeholder="رقم الهاتف السوداني" class="auth-input pl-24 text-left" dir="ltr">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xl" dir="ltr">+249</span>
-                </div>
-                <div class="relative">
-                    <input type="text" id="reg-username" placeholder="اسم المستخدم" class="auth-input pl-10 text-left" dir="ltr">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xl">@</span>
-                </div>
-                <input type="text" id="reg-name" placeholder="اكتب اسمك" class="auth-input">
-                <input type="password" id="reg-password" placeholder="كلمة المرور" class="auth-input">
-                <input type="password" id="reg-confirm-password" placeholder="تكرار كلمة المرور" class="auth-input">
-                <button class="auth-btn main-btn" onclick="signupWithPhone()">إنشاء حساب</button>
+                <button class="google-btn" onclick="signupWithGoogle()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
+                    <span>التسجيل باستخدام Google</span>
+                </button>
             </div>
         </div>
     </div>
 
-    <div id="app-container" class="page w-full bg-white h-screen max-h-screen flex flex-col items-stretch relative transition-colors duration-300">
+    <div id="app-container" class="page w-full bg-white h-screen max-h-screen flex-col items-stretch relative transition-colors duration-300">
       
       <!-- Home Screen -->
       <div id="screen-home" class="w-full flex-1 flex flex-col h-full fade-in-fast">
@@ -351,11 +394,6 @@
             </svg>
           </button>
           <div class="absolute right-6 top-8 flex items-center gap-2">
-            <button id="btn-joined-rooms" class="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-90" title="الغرف التي انضممت إليها">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </button>
             <button id="btn-go-create" class="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
@@ -367,9 +405,16 @@
           
           <!-- Search Bar -->
           <div id="search-container" class="w-full mt-4 fade-in px-6">
-            <div class="relative">
-              <input type="text" id="input-search-code" placeholder="ابحث عن الغرف" class="w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 absolute left-6 top-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <div class="flex items-stretch gap-3">
+              <button id="btn-joined-rooms" class="w-16 bg-white border border-slate-200 rounded-2xl text-blue-600 hover:bg-blue-50 transition-all active:scale-90 shadow-sm flex-shrink-0 flex items-center justify-center" title="الغرف التي انضممت إليها">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </button>
+              <div class="relative flex-1">
+                <input type="text" id="input-search-code" placeholder="ابحث عن الغرف" class="w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 absolute left-6 top-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </div>
             </div>
           </div>
         </div>
@@ -405,7 +450,7 @@
             <h3 id="settings-account-title" class="text-base font-bold text-blue-600 uppercase tracking-wider">إعدادات الحساب</h3>
             <div class="flex flex-col items-center gap-6">
               <div class="relative group">
-                <img id="settings-avatar-preview" src="https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg" class="w-40 h-40 rounded-full object-cover border-4 border-blue-100">
+                <img id="settings-avatar-preview" src="https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg" class="w-40 h-40 rounded-full object-cover border-4 border-blue-100">
                 <label for="input-avatar" class="absolute bottom-0 right-0 bg-blue-600 text-white p-4 rounded-full cursor-pointer hover:bg-blue-700 transition-all active:scale-90">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </label>
@@ -537,7 +582,7 @@
           </div>
         </div>
 
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0a0a0a] custom-scrollbar">
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           <!-- Messages will be injected here -->
         </div>
 
@@ -597,7 +642,7 @@
           </button>
         </div>
 
-        <div id="private-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0a0a0a] custom-scrollbar">
+        <div id="private-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           <!-- Messages will be injected here -->
         </div>
 
@@ -991,7 +1036,7 @@
         handle: '',
         age: '',
         bio: '',
-        avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
+        avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
         showRoomsOnProfile: true
       };
       let usersCache = {};
@@ -1273,7 +1318,7 @@
                 startChat: "ابدأ الدردشة الآن",
                 privateChatWith: "دردشة مع {name}",
                 typePrivateMessage: "اكتب رسالة خاصة...",
-                lastMessage: "آخر رسالة: ",
+                lastMessage: "",
                 cropperTitle: "تعديل الصورة",
                 cropperConfirm: "تأكيد",
                 cropperCancel: "إلغاء",
@@ -1300,9 +1345,13 @@
 
         window.showPage = function(id) {
             currentStep = id;
-            document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+            document.querySelectorAll(".page").forEach(p => {
+                p.classList.remove("active");
+            });
             const target = document.getElementById(id);
-            if (target) target.classList.add("active");
+            if (target) {
+                target.classList.add("active");
+            }
         };
 
         window.updateAppLanguage = function() {
@@ -1679,6 +1728,58 @@
         };
         const darkToggleCircle = document.getElementById('dark-toggle-circle');
 
+        // Mobile Keyboard Smooth Handling
+        if (window.visualViewport) {
+          const handleViewportChange = () => {
+            const viewport = window.visualViewport;
+            const offset = window.innerHeight - viewport.height;
+            
+            const chatInput = document.getElementById('chat-input-area');
+            const privateInput = document.getElementById('private-chat-input-area');
+            const activeInput = document.activeElement;
+            const isInputFocused = activeInput && (activeInput.id === 'input-message' || activeInput.id === 'input-private-message');
+            
+            if (offset > 50 && isInputFocused) { // Keyboard is likely open and input is focused
+              if (chatInput && activeInput.id === 'input-message') chatInput.style.paddingBottom = `${offset}px`;
+              if (privateInput && activeInput.id === 'input-private-message') privateInput.style.paddingBottom = `${offset}px`;
+              
+              // Scroll to bottom of messages
+              const activeMessages = document.querySelector('.screen:not(.hidden) .overflow-y-auto');
+              if (activeMessages) {
+                setTimeout(() => {
+                  activeMessages.scrollTo({
+                    top: activeMessages.scrollHeight,
+                    behavior: 'smooth'
+                  });
+                }, 100);
+              }
+            } else {
+              if (chatInput) chatInput.style.paddingBottom = '1rem';
+              if (privateInput) privateInput.style.paddingBottom = '1rem';
+            }
+          };
+
+          window.visualViewport.addEventListener('resize', handleViewportChange);
+          window.visualViewport.addEventListener('scroll', handleViewportChange);
+          
+          // Focus listeners for immediate scroll
+          const inputs = ['input-message', 'input-private-message'];
+          inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+              el.addEventListener('focus', () => {
+                setTimeout(handleViewportChange, 300);
+              });
+              el.addEventListener('blur', () => {
+                const chatInput = document.getElementById('chat-input-area');
+                const privateInput = document.getElementById('private-chat-input-area');
+                if (chatInput) chatInput.style.paddingBottom = '1rem';
+                if (privateInput) privateInput.style.paddingBottom = '1rem';
+              });
+            }
+          });
+        }
+
         // Auth Listener
         onAuthStateChanged(auth, async (user) => {
           let targetPage = 'auth';
@@ -1692,7 +1793,7 @@
                 name: user.displayName || translations.ar.defaultUserName,
                 age: '',
                 bio: '',
-                avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
+                avatar: user.photoURL || 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
                 showRoomsOnProfile: true
               };
               mockDb.users[user.uid] = userProfile;
@@ -1753,32 +1854,48 @@
             myRooms = onlineRooms.filter(r => r.creatorUid === userProfile.uid || (r.membersList && r.membersList.some(m => m.uid === userProfile.uid)));
             renderRooms();
 
-            // If we are currently in a room, update its header info if it changed
-            if (activeRoomId) {
-              const currentRoom = onlineRooms.find(r => r.id === activeRoomId);
-              if (currentRoom) {
-                if (displays.chatRoomName) displays.chatRoomName.innerText = currentRoom.name;
-                if (currentRoom.image) {
-                  displays.chatRoomImage.src = currentRoom.image;
-                  displays.chatRoomImage.classList.remove('hidden');
-                  displays.chatRoomIcon.classList.add('hidden');
-                } else {
-                  displays.chatRoomImage.classList.add('hidden');
-                  displays.chatRoomIcon.classList.remove('hidden');
-                }
+          // If we are currently in a room, update its header info if it changed
+          if (activeRoomId) {
+            const currentRoom = onlineRooms.find(r => r.id === activeRoomId);
+            if (currentRoom) {
+              if (displays.chatRoomName) displays.chatRoomName.innerText = currentRoom.name;
+              if (currentRoom.image) {
+                displays.chatRoomImage.src = currentRoom.image;
+                displays.chatRoomImage.classList.remove('hidden');
+                displays.chatRoomIcon.classList.add('hidden');
+              } else {
+                displays.chatRoomImage.classList.add('hidden');
+                displays.chatRoomIcon.classList.remove('hidden');
+              }
 
-                // Update membership UI
-                const isMember = currentRoom.membersList && currentRoom.membersList.find(m => m.uid === userProfile.uid);
-                if (isMember) {
-                  displays.messageInputContainer.classList.remove('hidden');
-                  displays.joinRoomContainer.classList.add('hidden');
-                } else {
-                  displays.messageInputContainer.classList.add('hidden');
-                  displays.joinRoomContainer.classList.remove('hidden');
-                }
-                buttons.viewMembers.classList.remove('hidden');
+              // Update membership UI
+              const isMember = currentRoom.membersList && currentRoom.membersList.find(m => m.uid === userProfile.uid);
+              if (isMember) {
+                displays.messageInputContainer.classList.remove('hidden');
+                displays.joinRoomContainer.classList.add('hidden');
+              } else {
+                displays.messageInputContainer.classList.add('hidden');
+                displays.joinRoomContainer.classList.remove('hidden');
+              }
+              buttons.viewMembers.classList.remove('hidden');
+              
+              // Update input state based on mute status
+              if (currentRoom.isMuted && currentRoom.creatorUid !== userProfile.uid) {
+                inputs.message.placeholder = translations.ar.messagingDisabled;
+                inputs.message.disabled = true;
+                buttons.sendMessage.classList.add('opacity-50', 'cursor-not-allowed');
+              } else {
+                inputs.message.placeholder = translations.ar.typeMessage;
+                inputs.message.disabled = false;
+                buttons.sendMessage.classList.remove('opacity-50', 'cursor-not-allowed');
+              }
+              
+              // Update mute toggle if settings screen is open
+              if (currentStep === 'roomSettings') {
+                updateMuteUsersToggle(currentRoom.isMuted);
               }
             }
+          }
           });
 
           // Listen for Private Messages
@@ -1789,7 +1906,7 @@
               if (msg.fromUid !== userProfile.uid && msg.toUid !== userProfile.uid) return;
               const otherUid = msg.fromUid === userProfile.uid ? msg.toUid : msg.fromUid;
               if (!convs[otherUid]) {
-                const otherUser = mockDb.users[otherUid] || { uid: otherUid, name: translations.ar.otherUser, avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg' };
+                const otherUser = mockDb.users[otherUid] || { uid: otherUid, name: translations.ar.otherUser, avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg' };
                 convs[otherUid] = { user: otherUser, messages: [] };
               }
               convs[otherUid].messages.push({
@@ -1817,118 +1934,49 @@
         }
         window.login = login;
 
-        async function loginWithPhone() {
-          const phone = document.getElementById('login-phone').value.trim();
-          const password = document.getElementById('login-password').value.trim();
-          
-          if (!phone || !password) {
-            alert("يرجى إدخال رقم الهاتف وكلمة المرور");
-            return;
-          }
-
-          const fullPhone = "+249" + phone;
-          // Find user in mockDb
-          const userEntry = Object.values(mockDb.users).find(u => u.phone === fullPhone && u.password === password);
-          
-          if (userEntry) {
-            auth.currentUser = { uid: userEntry.uid, displayName: userEntry.name };
-            localStorage.setItem('nc_current_user', JSON.stringify(auth.currentUser));
-            notifyAuthChange();
-            enterApp();
-          } else {
-            alert("رقم الهاتف أو كلمة المرور غير صحيحة");
-          }
-        }
-        window.loginWithPhone = loginWithPhone;
-
-        async function signup() {
-          const name = document.getElementById('reg-name').value.trim();
-          if (!name) return;
-          
+        async function handleGoogleAuth(isSignup = false) {
           try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
-            userProfile = {
-              uid: user.uid,
-              name: name,
-              handle: '',
-              age: '',
-              bio: '',
-              avatar: user.photoURL || 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
-              showRoomsOnProfile: true
-            };
-            await setDoc(doc(db, 'users', user.uid), userProfile);
+            
+            // Check if user exists in mockDb
+            if (!mockDb.users[user.uid]) {
+              // Create a new profile if it doesn't exist
+              userProfile = {
+                uid: user.uid,
+                name: user.displayName || translations.ar.defaultUserName,
+                handle: '',
+                age: '',
+                bio: '',
+                avatar: user.photoURL || 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
+                showRoomsOnProfile: true
+              };
+              mockDb.users[user.uid] = userProfile;
+              saveMockDb();
+            } else {
+              userProfile = mockDb.users[user.uid];
+            }
+            
+            auth.currentUser = { uid: user.uid, displayName: userProfile.name };
+            localStorage.setItem('nc_current_user', JSON.stringify(auth.currentUser));
+            notifyAuthChange();
+            enterApp();
           } catch (error) {
-            console.error("Signup error:", error);
+            console.error(isSignup ? "Signup error:" : "Login error:", error);
           }
         }
+        window.loginWithGoogle = () => handleGoogleAuth(false);
+        window.signupWithGoogle = () => handleGoogleAuth(true);
+
+        async function loginWithPhone() {}
+        window.loginWithPhone = loginWithPhone;
+
+        async function signup() {}
         window.signup = signup;
 
-        async function signupWithPhone() {
-          const phone = document.getElementById('reg-phone').value.trim();
-          const usernameInput = document.getElementById('reg-username').value.trim();
-          const name = document.getElementById('reg-name').value.trim();
-          const password = document.getElementById('reg-password').value.trim();
-          const confirmPassword = document.getElementById('reg-confirm-password').value.trim();
-          
-          if (!phone || !usernameInput || !name || !password || !confirmPassword) {
-            alert("يرجى ملء جميع الحقول");
-            return;
-          }
-          
-          // Validate username is English alphanumeric
-          const usernameRegex = /^[a-zA-Z0-9_]+$/;
-          if (!usernameRegex.test(usernameInput)) {
-            alert("اسم المستخدم يجب أن يكون باللغة الإنجليزية وأرقام فقط");
-            return;
-          }
-          
-          const username = "@" + usernameInput;
-
-          if (password !== confirmPassword) {
-            alert("كلمات المرور غير متطابقة");
-            return;
-          }
-
-          const fullPhone = "+249" + phone;
-          
-          // Check if phone already exists
-          const existingPhone = Object.values(mockDb.users).find(u => u.phone === fullPhone);
-          if (existingPhone) {
-            alert("هذا الرقم مسجل بالفعل");
-            return;
-          }
-          
-          // Check if username already exists
-          const existingUsername = Object.values(mockDb.users).find(u => u.username === username);
-          if (existingUsername) {
-            alert("اسم المستخدم هذا مأخوذ بالفعل");
-            return;
-          }
-
-          const uid = 'phone_' + Math.random().toString(36).substring(2, 10);
-          userProfile = {
-            uid: uid,
-            name: name,
-            username: username,
-            handle: usernameInput,
-            phone: fullPhone,
-            password: password,
-            age: '',
-            bio: '',
-            avatar: 'https://i.pinimg.com/736x/61/e4/b1/61e4b11e098fa8bf472232b841fcbb3b.jpg',
-            showRoomsOnProfile: true
-          };
-
-          mockDb.users[uid] = userProfile;
-          saveMockDb();
-
-          auth.currentUser = { uid: uid, displayName: name };
-          localStorage.setItem('nc_current_user', JSON.stringify(auth.currentUser));
-          notifyAuthChange();
-          enterApp();
-        }
+        async function signupWithPhone() {}
         window.signupWithPhone = signupWithPhone;
+
         function logout() {
           auth.currentUser = null;
           localStorage.removeItem('nc_current_user');
@@ -2104,7 +2152,7 @@
             const senderInfo = usersCache[msg.senderUid] || (isMe ? userProfile : (msg.senderInfo || {
               uid: msg.senderUid || 'other',
               name: translations.ar.otherUser,
-              avatar: 'https://i.pinimg.com/736x/92/f8/f9/92f8f92a91bf7de670dddb7b1171a250.jpg',
+              avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
               age: '22',
               bio: translations.ar.defaultBio
             }));
@@ -2119,12 +2167,12 @@
               ${avatarHtml}
               <div class="message-bubble max-w-[85%] w-fit px-3.5 py-1.5 rounded-[18px] text-[15px] font-semibold relative cursor-pointer hover:opacity-90 transition-opacity ${
                 isMe
-                  ? 'bg-[#f06292] text-white rounded-br-none'
+                  ? 'sender-bubble rounded-br-none'
                   : 'bg-[#262626] text-white rounded-bl-none'
               }">
                 ${!isMe && !msg.isWelcome ? `<div class="text-[9px] font-extrabold text-blue-400 mb-0.5 text-right">${senderInfo.name}</div>` : ''}
                 <div class="flex flex-col">
-                  <p class="text-right leading-tight">
+                  <p class="text-right leading-tight truncate-message">
                     ${msg.isWelcome ? translations.ar.welcomeMessage.replace('{name}', room.name) : msg.text}
                     ${msg.isEdited ? `<span class="text-[9px] opacity-70 inline-block mr-1">(معدلة)</span>` : ''}
                   </p>
@@ -2481,10 +2529,17 @@
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
           if (!room || room.creatorUid !== userProfile.uid) return;
           
+          const newMuteState = !room.isMuted;
+          
+          // Optimistic UI update
+          updateMuteUsersToggle(newMuteState);
+          
           try {
-            await updateDoc(doc(db, 'rooms', activeRoomId), { isMuted: !room.isMuted });
+            await updateDoc(doc(db, 'rooms', activeRoomId), { isMuted: newMuteState });
           } catch (error) {
             console.error("Toggle mute error:", error);
+            // Revert on error
+            updateMuteUsersToggle(room.isMuted);
           }
         }
 
@@ -3135,17 +3190,16 @@
             div.onclick = () => openPrivateChat(displayUser);
             div.innerHTML = `
               <img src="${displayUser.avatar}" class="w-14 h-14 rounded-full object-cover border border-slate-200">
-              <div class="flex-1 text-right">
-                <div class="flex items-center justify-between">
+              <div class="flex-1 text-right min-w-0">
+                <div class="flex items-center justify-between min-w-0">
                   <span class="text-xs text-slate-400">${lastMsg.time}</span>
-                  <h4 class="font-extrabold text-slate-800">${isMe ? translations.ar.messageYourself : displayUser.name}</h4>
+                  <h4 class="font-extrabold text-slate-800 truncate ml-2">${isMe ? translations.ar.messageYourself : displayUser.name}</h4>
                 </div>
-                <div class="flex items-center justify-between mt-1">
-                   <p class="text-sm text-slate-500 truncate flex-1 ml-2">
-                    <span class="font-bold text-blue-600">${translations.ar.lastMessage}</span>
+                <div class="flex items-center justify-between mt-1 min-w-0">
+                   <p class="text-sm text-slate-500 truncate flex-1">
                     ${lastMsg.text}
                   </p>
-                  ${displayUser.handle ? `<span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">@${displayUser.handle}</span>` : ''}
+                  ${displayUser.handle ? `<span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold mr-2">@${displayUser.handle}</span>` : ''}
                 </div>
               </div>
             `;
@@ -3242,11 +3296,11 @@
               ${avatarHtml}
               <div class="message-bubble max-w-[85%] w-fit px-3.5 py-1.5 rounded-[18px] text-[15px] font-semibold relative cursor-pointer hover:opacity-90 transition-opacity ${
                 isMe
-                  ? 'bg-[#f06292] text-white rounded-br-none'
+                  ? 'sender-bubble rounded-br-none'
                   : 'bg-[#262626] text-white rounded-bl-none'
               }">
                 <div class="flex flex-col">
-                  <p class="text-right leading-tight">
+                  <p class="text-right leading-tight truncate-message">
                     ${msg.text}
                     ${msg.isEdited ? `<span class="text-[9px] opacity-70 inline-block mr-1">(معدلة)</span>` : ''}
                   </p>
