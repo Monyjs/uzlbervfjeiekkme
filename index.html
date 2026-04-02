@@ -359,11 +359,14 @@
         <div class="back-btn" onclick="showPage('auth')" id="back1">رجوع</div>
         <div class="auth-container">
             <div class="auth-title" id="loginTitle">تسجيل الدخول</div>
-            <div class="w-full space-y-2">
-                <button class="google-btn" onclick="loginWithGoogle()">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
-                    <span>الدخول باستخدام Google</span>
-                </button>
+            <div class="w-full space-y-4">
+                <div class="relative">
+                    <input type="text" id="input-login-username" placeholder="@username" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
+                </div>
+                <div class="relative">
+                    <input type="password" id="input-login-password" placeholder="كلمة المرور" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
+                </div>
+                <button class="auth-btn main-btn w-full" id="btn-finish-login" onclick="loginWithEmail()">دخول</button>
             </div>
         </div>
     </div>
@@ -373,11 +376,17 @@
         <div class="back-btn" onclick="showPage('auth')" id="back2">رجوع</div>
         <div class="auth-container">
             <div class="auth-title" id="signupTitle">إنشاء حساب</div>
-            <div class="w-full space-y-2">
-                <button class="google-btn" onclick="signupWithGoogle()">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
-                    <span>التسجيل باستخدام Google</span>
-                </button>
+            <div class="w-full space-y-4">
+                <div class="relative">
+                    <input type="text" id="input-signup-username" placeholder="@username" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
+                </div>
+                <div class="relative">
+                    <input type="password" id="input-signup-password" placeholder="كلمة المرور" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
+                </div>
+                <div class="relative">
+                    <input type="password" id="input-signup-confirm" placeholder="تأكيد كلمة المرور" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
+                </div>
+                <button class="auth-btn main-btn w-full" id="btn-finish-signup" onclick="signupWithEmail()">إنشاء</button>
             </div>
         </div>
     </div>
@@ -394,7 +403,7 @@
             </svg>
           </button>
           <div class="absolute right-6 top-8 flex items-center gap-2">
-            <button id="btn-go-create" class="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-90">
+            <button id="createRoomBtn" class="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
               </svg>
@@ -582,16 +591,16 @@
           </div>
         </div>
 
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           <!-- Messages will be injected here -->
         </div>
 
         <div id="chat-input-area" class="p-4 bg-white border-t border-slate-100 transition-all duration-300 ease-out">
           <div id="message-input-container" class="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200">
-            <button id="btn-send-message" class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 transition-all active:scale-90">
+            <button id="sendBtn" class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 transition-all active:scale-90">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="transform: rotate(-90deg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
             </button>
-            <input type="text" id="input-message" placeholder="اكتب رسالتك هنا..." class="flex-1 bg-transparent outline-none text-right px-4 text-lg font-bold">
+            <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." class="flex-1 bg-transparent outline-none text-right px-4 text-lg font-bold">
           </div>
           <div id="join-room-container" class="hidden">
             <button id="btn-confirm-join" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 text-lg">
@@ -1015,8 +1024,321 @@
       </div>
 
     </div>
+    
+    <!-- 
+    ===============================================================
+    FIRESTORE SECURITY RULES (Copy to Firebase Console)
+    ===============================================================
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        function isAuthenticated() { return request.auth != null; }
+        function isOwner(userId) { return isAuthenticated() && request.auth.uid == userId; }
+        function isAdmin() {
+          return isAuthenticated() &&
+            ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin') ||
+              (request.auth.token.email == "enriquecunningcrow@gmail.com" && request.auth.token.email_verified == true));
+        }
+        function hasRequiredFields(fields) { return request.resource.data.keys().hasAll(fields); }
+        function isValidOptionalString(field, min, max) {
+          return !(field in request.resource.data) || (request.resource.data[field] is string && request.resource.data[field].size() >= min && request.resource.data[field].size() <= max);
+        }
+        function isValidUser(data) {
+          return hasRequiredFields(['uid', 'name']) && data.uid == request.auth.uid && data.name is string && data.name.size() > 0 && data.name.size() <= 50 && isValidOptionalString('handle', 0, 30) && isValidOptionalString('bio', 0, 200) && (!( 'role' in data) || data.role in ['admin', 'user']) && (!( 'status' in data) || data.status in ['online', 'offline']) && (!( 'lastSeen' in data) || data.lastSeen is number);
+        }
+        function isValidRoom(data) {
+          return hasRequiredFields(['name', 'code', 'members', 'maxMembers', 'isPrivate', 'creatorUid']) && data.name is string && data.name.size() > 0 && data.name.size() <= 50 && data.members is number && data.maxMembers is number && data.isPrivate is bool && data.creatorUid == request.auth.uid;
+        }
+        match /users/{userId} {
+          allow read: if isAuthenticated();
+          allow create: if isOwner(userId) && isValidUser(request.resource.data);
+          allow update: if (isOwner(userId) && isValidUser(request.resource.data)) || isAdmin();
+        }
+        match /rooms/{roomId} {
+          allow read: if isAuthenticated();
+          allow create: if isAuthenticated() && isValidRoom(request.resource.data);
+          allow update: if isAuthenticated();
+          allow delete: if isAuthenticated() && (resource.data.creatorUid == request.auth.uid || isAdmin());
+          match /messages/{messageId} {
+            allow read: if isAuthenticated();
+            allow create: if isAuthenticated();
+            allow update, delete: if isAuthenticated() && (resource.data.senderUid == request.auth.uid || isAdmin());
+          }
+        }
+        match /privateMessages/{messageId} {
+          allow read: if isAuthenticated() && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
+          allow create: if isAuthenticated();
+          allow update, delete: if isAuthenticated() && (resource.data.fromUid == request.auth.uid || isAdmin());
+        }
+      }
+    }
+    ===============================================================
+    -->
 
     <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+      import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, or, orderBy, serverTimestamp, getDocFromServer } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+
+      // Firebase Configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCyI_FCtjBSTaxLGD3Zvo36USJrX6QPFwA",
+        authDomain: "gen-lang-client-0414589821.firebaseapp.com",
+        projectId: "gen-lang-client-0414589821",
+        storageBucket: "gen-lang-client-0414589821.firebasestorage.app",
+        messagingSenderId: "312992595647",
+        appId: "1:312992595647:web:0cceb39e9e47719fe5d00a",
+        measurementId: ""
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const auth = getAuth(app);
+      const db = getFirestore(app, "ai-studio-d0f2f51e-6629-486c-8456-c65cbad8c60a");
+
+      // DOM Elements Initialization
+      const screens = {};
+      const inputs = {};
+      const displays = {};
+      const buttons = {};
+
+      function initDOMElements() {
+        Object.assign(screens, {
+          splash: document.getElementById('splash'),
+          auth: document.getElementById('auth'),
+          login: document.getElementById('loginPage'),
+          signup: document.getElementById('signupPage'),
+          home: document.getElementById('screen-home'),
+          chat: document.getElementById('screen-chat'),
+          createRoom: document.getElementById('screen-create'),
+          settings: document.getElementById('screen-settings'),
+          roomSettings: document.getElementById('screen-room-settings'),
+          inbox: document.getElementById('screen-inbox'),
+          privateChat: document.getElementById('screen-private-chat')
+        });
+        Object.assign(inputs, {
+          loginUsername: document.getElementById('input-login-username'),
+          loginPassword: document.getElementById('input-login-password'),
+          signupUsername: document.getElementById('input-signup-username'),
+          signupPassword: document.getElementById('input-signup-password'),
+          signupConfirm: document.getElementById('input-signup-confirm'),
+          userName: document.getElementById('input-user-name'),
+          userAge: document.getElementById('input-user-age'),
+          userBio: document.getElementById('input-user-bio'),
+          roomName: document.getElementById('input-room-name'),
+          editRoomName: document.getElementById('input-edit-room-name'),
+          editRoomMaxMembers: document.getElementById('input-edit-room-max-members'),
+          roomMaxMembers: document.getElementById('input-room-max-members'),
+          roomImage: document.getElementById('input-room-image'),
+          createRoomImage: document.getElementById('input-create-room-image'),
+          searchCode: document.getElementById('input-search-code'),
+          searchAccounts: document.getElementById('input-search-accounts'),
+          privateMessage: document.getElementById('input-private-message'),
+          userHandle: document.getElementById('input-user-handle'),
+          messageInput: document.getElementById('messageInput'),
+          avatar: document.getElementById('input-avatar')
+        });
+        Object.assign(displays, {
+          roomCode: document.getElementById('display-room-code'),
+          chatRoomName: document.getElementById('chat-room-name'),
+          chatRoomCode: document.getElementById('chat-room-code'),
+          avatarPreview: document.getElementById('settings-avatar-preview'),
+          roomSettingsImagePreview: document.getElementById('room-settings-image-preview'),
+          createRoomImagePreview: document.getElementById('create-room-image-preview'),
+          chatRoomImage: document.getElementById('chat-room-image'),
+          chatRoomIcon: document.getElementById('chat-room-icon'),
+          modalUserProfile: document.getElementById('modal-user-profile'),
+          profileModalAvatar: document.getElementById('profile-modal-avatar'),
+          profileModalName: document.getElementById('profile-modal-name'),
+          profileModalUsername: document.getElementById('profile-modal-username'),
+          profileModalAge: document.getElementById('profile-modal-age'),
+          profileModalBio: document.getElementById('profile-modal-bio'),
+          profileModalRooms: document.getElementById('profile-modal-rooms'),
+          labelUserRooms: document.getElementById('label-user-rooms'),
+          modalUserActions: document.getElementById('modal-user-actions'),
+          actionsModalContent: document.getElementById('actions-modal-content'),
+          modalNotice: document.getElementById('modal-notice'),
+          modalRoomMembers: document.getElementById('modal-room-members'),
+          modalConfirm: document.getElementById('modal-confirm'),
+          confirmModalContent: document.getElementById('confirm-modal-content'),
+          confirmModalMessage: document.getElementById('confirm-modal-message'),
+          roomMembersList: document.getElementById('room-members-list'),
+          noticeModalMessage: document.getElementById('notice-modal-message'),
+          noticeModalContent: document.getElementById('notice-modal-content'),
+          searchContainer: document.getElementById('search-container'),
+          displayEditRoomCode: document.getElementById('display-edit-room-code'),
+          messageContextMenu: document.getElementById('message-context-menu'),
+          modalCropper: document.getElementById('modal-cropper'),
+          cropperImage: document.getElementById('cropper-image'),
+          screenInbox: document.getElementById('screen-inbox'),
+          inboxList: document.getElementById('inbox-list'),
+          screenPrivateChat: document.getElementById('screen-private-chat'),
+          privateChatMessages: document.getElementById('private-chat-messages'),
+          privateChatAvatar: document.getElementById('private-chat-avatar'),
+          privateChatName: document.getElementById('private-chat-name'),
+          privateChatUserInfo: document.getElementById('private-chat-user-info'),
+          labelMessageUser: document.getElementById('label-message-user'),
+          modalPackages: document.getElementById('modal-packages'),
+          packagesModalContent: document.getElementById('packages-modal-content'),
+          modalVip: document.getElementById('modal-vip'),
+          vipModalContent: document.getElementById('vip-modal-content'),
+          messageInputContainer: document.getElementById('message-input-container'),
+          joinRoomContainer: document.getElementById('join-room-container'),
+          leaveRoomContainer: document.getElementById('leave-room-container'),
+          chatMessages: document.getElementById('chatMessages'),
+          profileModalContent: document.getElementById('profile-modal-content'),
+          membersModalContent: document.getElementById('members-modal-content')
+        });
+        Object.assign(buttons, {
+          viewAll: document.getElementById('btn-view-all'),
+          viewMy: document.getElementById('btn-view-my'),
+          joinedRooms: document.getElementById('btn-joined-rooms'),
+          createRoomBtn: document.getElementById('createRoomBtn'),
+          openSettings: document.getElementById('btn-open-settings'),
+          openInbox: document.getElementById('btn-open-inbox'),
+          backToAuth: document.getElementById('btn-back-to-auth'),
+          backToLogin: document.getElementById('btn-back-to-login'),
+          backToSignup: document.getElementById('btn-back-to-signup'),
+          backToHome: document.getElementById('btn-back-to-home'),
+          backToHomeFromCreate: document.getElementById('btn-back-to-home-from-create'),
+          backToHomeFromSettings: document.getElementById('btn-back-to-home-from-settings'),
+          backToHomeFromRoomSettings: document.getElementById('btn-back-to-home-from-room-settings'),
+          backToChat: document.getElementById('btn-back-to-chat'),
+          exitChat: document.getElementById('btn-exit-chat'),
+          roomMembers: document.getElementById('btn-room-members'),
+          roomSettings: document.getElementById('btn-room-settings'),
+          closeRoomMembers: document.getElementById('btn-close-room-members'),
+          closeUserProfile: document.getElementById('btn-close-user-profile'),
+          closeConfirm: document.getElementById('btn-close-confirm'),
+          sendBtn: document.getElementById('sendBtn'),
+          googleLogin: document.getElementById('btn-google-login'),
+          emailLogin: document.getElementById('btn-email-login'),
+          emailSignup: document.getElementById('btn-email-signup'),
+          finishSignup: document.getElementById('btn-finish-signup'),
+          finishLogin: document.getElementById('btn-finish-login'),
+          finishCreate: document.getElementById('btn-finish-create'),
+          cancelCreate: document.getElementById('btn-cancel-create'),
+          saveSettings: document.getElementById('btn-save-settings'),
+          saveRoomSettings: document.getElementById('btn-save-room-settings'),
+          deleteRoom: document.getElementById('btn-delete-room'),
+          confirmYes: document.getElementById('btn-confirm-yes'),
+          confirmNo: document.getElementById('btn-confirm-no'),
+          closeProfile: document.getElementById('btn-close-profile'),
+          closeActions: document.getElementById('btn-close-actions'),
+          actionRemove: document.getElementById('btn-action-remove'),
+          actionProfile: document.getElementById('btn-action-profile'),
+          closeNotice: document.getElementById('btn-close-notice'),
+          toggleSearch: document.getElementById('btn-toggle-search'),
+          copyRoomCode: document.getElementById('btn-copy-room-code'),
+          privateMessages: document.getElementById('btn-private-messages'),
+          deleteMessageBtn: document.getElementById('btn-delete-message-action'),
+          editMessageBtn: document.getElementById('btn-edit-message-action'),
+          copyMessageBtn: document.getElementById('btn-copy-message-action'),
+          toggleMuteUsers: document.getElementById('btn-toggle-mute-users'),
+          cropperCancel: document.getElementById('btn-cropper-cancel'),
+          cropperConfirm: document.getElementById('btn-cropper-confirm'),
+          cropperAspect: document.getElementById('btn-cropper-aspect'),
+          messageUser: document.getElementById('btn-message-user'),
+          inboxBack: document.getElementById('btn-inbox-back'),
+          exitPrivateChat: document.getElementById('btn-exit-private-chat'),
+          sendPrivateMessage: document.getElementById('btn-send-private-message'),
+          settingsMessageSelf: document.getElementById('btn-settings-message-self'),
+          leaveRoom: document.getElementById('btn-leave-room'),
+          closePackages: document.getElementById('btn-close-packages'),
+          closeVip: document.getElementById('btn-close-vip'),
+          subscribeVip: document.getElementById('btn-subscribe-vip'),
+          backHome: document.getElementById('btn-back-home'),
+          typePublic: document.getElementById('btn-type-public'),
+          typePrivate: document.getElementById('btn-type-private'),
+          confirmJoin: document.getElementById('btn-confirm-join'),
+          settingsBack: document.getElementById('btn-settings-back'),
+          toggleDark: document.getElementById('btn-toggle-dark'),
+          viewMembers: document.getElementById('btn-view-members'),
+          closeMembers: document.getElementById('btn-close-members'),
+          chatHeader: document.getElementById('chat-header'),
+          roomSettingsBack: document.getElementById('btn-room-settings-back'),
+          toggleShowRooms: document.getElementById('btn-toggle-show-rooms')
+        });
+      }
+
+      // Initialize DOM elements immediately
+      initDOMElements();
+
+      // Error Handling
+      const OperationType = {
+        CREATE: 'create',
+        UPDATE: 'update',
+        DELETE: 'delete',
+        LIST: 'list',
+        GET: 'get',
+        WRITE: 'write',
+      };
+
+      function handleFirestoreError(error, operationType, path) {
+        const errInfo = {
+          error: error instanceof Error ? error.message : String(error),
+          authInfo: {
+            userId: auth.currentUser?.uid,
+            email: auth.currentUser?.email,
+            emailVerified: auth.currentUser?.emailVerified,
+            isAnonymous: auth.currentUser?.isAnonymous,
+            tenantId: auth.currentUser?.tenantId,
+            providerInfo: auth.currentUser?.providerData.map(provider => ({
+              providerId: provider.providerId,
+              displayName: provider.displayName,
+              email: provider.email,
+              photoUrl: provider.photoURL
+            })) || []
+          },
+          operationType,
+          path
+        }
+        console.error('Firestore Error: ', JSON.stringify(errInfo));
+        // Show a user-friendly error message if possible
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes('Missing or insufficient permissions')) {
+            showNotice('خطأ في الصلاحيات: ليس لديك الإذن للقيام بهذه العملية');
+        } else {
+            showNotice('حدث خطأ في قاعدة البيانات');
+        }
+        throw new Error(JSON.stringify(errInfo));
+      }
+
+      function showNotice(message) {
+        if (displays.noticeModalMessage) displays.noticeModalMessage.innerText = message;
+        if (displays.modalNotice) {
+          displays.modalNotice.classList.remove('hidden');
+          setTimeout(() => {
+            displays.modalNotice.classList.add('opacity-100');
+            if (displays.noticeModalContent) displays.noticeModalContent.classList.remove('scale-90');
+          }, 10);
+        }
+      }
+
+      function closeNotice() {
+        if (displays.modalNotice) {
+          displays.modalNotice.classList.remove('opacity-100');
+          if (displays.noticeModalContent) displays.noticeModalContent.classList.add('scale-90');
+          setTimeout(() => {
+            displays.modalNotice.classList.add('hidden');
+          }, 300);
+        }
+      }
+
+      // Test Connection
+      async function testConnection() {
+        try {
+          await getDocFromServer(doc(db, 'test', 'connection'));
+        } catch (error) {
+          if(error instanceof Error && error.message.includes('the client is offline')) {
+            console.error("Please check your Firebase configuration. ");
+          }
+        }
+      }
+      testConnection();
+
       // State
       let currentStep = 'home';
       let viewMode = 'online';
@@ -1041,168 +1363,6 @@
       };
       let usersCache = {};
       let listenersInitialized = false;
-
-      // --- Mock Firebase (Local State) ---
-      localStorage.removeItem('nc_current_user');
-      const mockDb = {
-        users: JSON.parse(localStorage.getItem('nc_users') || '{}'),
-        rooms: JSON.parse(localStorage.getItem('nc_rooms') || '[]'),
-        privateMessages: JSON.parse(localStorage.getItem('nc_pms') || '[]')
-      };
-
-      function saveMockDb() {
-        localStorage.setItem('nc_users', JSON.stringify(mockDb.users));
-        localStorage.setItem('nc_rooms', JSON.stringify(mockDb.rooms));
-        localStorage.setItem('nc_pms', JSON.stringify(mockDb.privateMessages));
-      }
-
-      const auth = {
-        currentUser: JSON.parse(localStorage.getItem('nc_current_user') || 'null')
-      };
-      
-      // Initialize userProfile if session exists
-      if (auth.currentUser && mockDb.users[auth.currentUser.uid]) {
-        userProfile = mockDb.users[auth.currentUser.uid];
-      }
-
-      const listeners = [];
-      function onSnapshot(ref, callback) {
-        const listener = () => {
-          let data = [];
-          if (ref.collection === 'rooms') {
-            data = mockDb.rooms;
-          } else if (ref.collection.includes('/messages')) {
-            const parts = ref.collection.split('/');
-            const room = mockDb.rooms.find(r => r.id === parts[1]);
-            data = room ? (room.messages || []) : [];
-          } else if (ref.collection === 'privateMessages') {
-            data = mockDb.privateMessages.filter(m => m.participants.includes(userProfile.uid));
-          }
-          callback({ 
-            docs: data.map(d => ({ id: d.id, data: () => d })) 
-          });
-        };
-        listeners.push({ ref, callback: listener });
-        listener();
-        return () => {
-          const idx = listeners.findIndex(l => l.callback === listener);
-          if (idx > -1) listeners.splice(idx, 1);
-        };
-      }
-
-      function notifyListeners(collectionPath) {
-        listeners.forEach(l => {
-          if (l.ref.collection === collectionPath || collectionPath.startsWith(l.ref.collection)) {
-            l.callback();
-          }
-        });
-      }
-
-      const db = {};
-      const collection = (db, ...paths) => ({ collection: paths.join('/') });
-      const doc = (db, ...paths) => ({ collection: paths.slice(0, -1).join('/'), id: paths[paths.length - 1] });
-      const query = (col) => col;
-      const where = () => ({});
-      const orderBy = () => ({});
-      
-      async function getDoc(ref) {
-        const data = mockDb[ref.collection][ref.id];
-        return { exists: () => !!data, data: () => data };
-      }
-
-      async function setDoc(ref, data) {
-        mockDb[ref.collection][ref.id] = data;
-        saveMockDb();
-        notifyListeners(ref.collection);
-      }
-
-      async function addDoc(ref, data) {
-        const id = Math.random().toString(36).substr(2, 9);
-        const docData = { id, ...data };
-        if (ref.collection === 'rooms') {
-          mockDb.rooms.unshift(docData);
-        } else if (ref.collection.includes('messages')) {
-          // Handle subcollection messages
-          const parts = ref.collection.split('/');
-          if (parts[0] === 'rooms') {
-            const room = mockDb.rooms.find(r => r.id === parts[1]);
-            if (room) {
-              if (!room.messages) room.messages = [];
-              room.messages.push(docData);
-            }
-          }
-        } else if (ref.collection === 'privateMessages') {
-          mockDb.privateMessages.push(docData);
-        }
-        saveMockDb();
-        notifyListeners(ref.collection);
-        return { id };
-      }
-
-      async function updateDoc(ref, data) {
-        if (ref.collection === 'rooms') {
-          const room = mockDb.rooms.find(r => r.id === ref.id);
-          if (room) Object.assign(room, data);
-        } else if (ref.collection.includes('/messages')) {
-          const parts = ref.collection.split('/');
-          if (parts[0] === 'rooms') {
-            const room = mockDb.rooms.find(r => r.id === parts[1]);
-            if (room && room.messages) {
-              const msg = room.messages.find(m => m.id === ref.id);
-              if (msg) Object.assign(msg, data);
-            }
-          }
-        } else if (ref.collection === 'privateMessages') {
-          const msg = mockDb.privateMessages.find(m => m.id === ref.id);
-          if (msg) Object.assign(msg, data);
-        }
-        saveMockDb();
-        notifyListeners(ref.collection);
-      }
-
-      async function deleteDoc(ref) {
-        if (ref.collection === 'rooms') {
-          mockDb.rooms = mockDb.rooms.filter(r => r.id !== ref.id);
-        } else if (ref.collection.includes('/messages')) {
-          const parts = ref.collection.split('/');
-          if (parts[0] === 'rooms') {
-            const room = mockDb.rooms.find(r => r.id === parts[1]);
-            if (room && room.messages) {
-              room.messages = room.messages.filter(m => m.id !== ref.id);
-            }
-          }
-        } else if (ref.collection === 'privateMessages') {
-          mockDb.privateMessages = mockDb.privateMessages.filter(m => m.id !== ref.id);
-        }
-        saveMockDb();
-        notifyListeners(ref.collection);
-      }
-
-      const authListeners = [];
-      function onAuthStateChanged(auth, callback) {
-        authListeners.push(callback);
-        callback(auth.currentUser);
-        return () => {
-          const idx = authListeners.indexOf(callback);
-          if (idx > -1) authListeners.splice(idx, 1);
-        };
-      }
-
-      function notifyAuthChange() {
-        authListeners.forEach(l => l(auth.currentUser));
-      }
-
-      const googleProvider = {};
-      async function signInWithPopup() {
-        // Mock sign in
-        const mockUser = { uid: 'mock-uid-' + Date.now(), displayName: 'User ' + Math.floor(Math.random() * 1000), photoURL: '' };
-        auth.currentUser = mockUser;
-        localStorage.setItem('nc_current_user', JSON.stringify(mockUser));
-        notifyAuthChange();
-        return { user: mockUser };
-      }
-
-      const serverTimestamp = () => Date.now();
 
       // --- Logic ---
       (function() {
@@ -1339,7 +1499,15 @@
                 editMessage: "تعديل",
                 deleteMessage: "حذف",
                 editMessagePrompt: "تعديل الرسالة:",
-                save: "حفظ"
+                save: "حفظ",
+                loginTitle: "تسجيل الدخول",
+                signupTitle: "إنشاء حساب",
+                usernamePlaceholder: "@username",
+                passwordPlaceholder: "كلمة المرور",
+                confirmPasswordPlaceholder: "تأكيد كلمة المرور",
+                loginBtn: "دخول",
+                signupBtn: "إنشاء",
+                alreadyHaveAccount: "لدي حساب بالفعل"
             }
         };
 
@@ -1369,34 +1537,31 @@
                     el.innerText = t.nilechat;
                 }
             });
-            const loginText = document.getElementById("loginText");
-            if (loginText) loginText.innerText = t.loginBtn;
             const signupText = document.getElementById("signupText");
-            if (signupText) signupText.innerText = t.signupBtn;
+            if (signupText) signupText.innerText = t.signupTitle;
+            const loginText = document.getElementById("loginText");
+            if (loginText) loginText.innerText = t.alreadyHaveAccount;
+            
             const loginTitle = document.getElementById("loginTitle");
             if (loginTitle) loginTitle.innerText = t.loginTitle;
             const signupTitle = document.getElementById("signupTitle");
             if (signupTitle) signupTitle.innerText = t.signupTitle;
-            const googleLoginText = document.getElementById("googleLoginText");
-            if (googleLoginText) googleLoginText.innerText = t.googleLogin;
-            const googleSignupText = document.getElementById("googleSignupText");
-            if (googleSignupText) googleSignupText.innerText = t.googleSignup;
-            const back1 = document.getElementById("back1");
-            if (back1) back1.innerText = t.back;
-            const back2 = document.getElementById("back2");
-            if (back2) back2.innerText = t.back;
-            const regName = document.getElementById("reg-name");
-            if (regName) regName.placeholder = t.namePlaceholder;
-            const regPhone = document.getElementById("reg-phone");
-            if (regPhone) regPhone.placeholder = t.phonePlaceholder;
-            const regPassword = document.getElementById("reg-password");
-            if (regPassword) regPassword.placeholder = t.passwordPlaceholder;
-            const regConfirmPassword = document.getElementById("reg-confirm-password");
-            if (regConfirmPassword) regConfirmPassword.placeholder = t.confirmPasswordPlaceholder;
-            const loginPhone = document.getElementById("login-phone");
-            if (loginPhone) loginPhone.placeholder = t.phonePlaceholder;
-            const loginPassword = document.getElementById("login-password");
+            
+            const loginUsername = document.getElementById("input-login-username");
+            if (loginUsername) loginUsername.placeholder = t.usernamePlaceholder;
+            const loginPassword = document.getElementById("input-login-password");
             if (loginPassword) loginPassword.placeholder = t.passwordPlaceholder;
+            const finishLogin = document.getElementById("btn-finish-login");
+            if (finishLogin) finishLogin.innerText = t.loginBtn;
+            
+            const signupUsername = document.getElementById("input-signup-username");
+            if (signupUsername) signupUsername.placeholder = t.usernamePlaceholder;
+            const signupPassword = document.getElementById("input-signup-password");
+            if (signupPassword) signupPassword.placeholder = t.passwordPlaceholder;
+            const signupConfirm = document.getElementById("input-signup-confirm");
+            if (signupConfirm) signupConfirm.placeholder = t.confirmPasswordPlaceholder;
+            const finishSignup = document.getElementById("btn-finish-signup");
+            if (finishSignup) finishSignup.innerText = t.signupBtn;
 
             // Update Main App UI
             const homeTitle = document.getElementById("home-title");
@@ -1578,19 +1743,12 @@
         };
 
         window.enterApp = function() {
-            if (!userProfile.uid) {
-                userProfile.uid = 'guest_' + Math.random().toString(36).substring(2, 10);
-                userProfile.name = translations.ar.defaultUserName;
-                mockDb.users[userProfile.uid] = userProfile;
-                saveMockDb();
-                
-                // Save guest session
-                const guestUser = { uid: userProfile.uid, displayName: userProfile.name, isGuest: true };
-                auth.currentUser = guestUser;
-                localStorage.setItem('nc_current_user', JSON.stringify(guestUser));
+            if (!auth.currentUser) {
+                showPage('auth');
+                return;
             }
             showPage('app-container');
-            renderRooms();
+            switchViewMode('online');
             setupRealtimeListeners();
         }
 
@@ -1598,134 +1756,7 @@
         let cropperTarget = null; // 'avatar', 'room', 'createRoom'
         let cropperAspectRatio = 1;
 
-        // DOM Elements
-        const screens = {
-          home: document.getElementById('screen-home'),
-          create: document.getElementById('screen-create'),
-          chat: document.getElementById('screen-chat'),
-          settings: document.getElementById('screen-settings'),
-          roomSettings: document.getElementById('screen-room-settings'),
-          inbox: document.getElementById('screen-inbox'),
-          privateChat: document.getElementById('screen-private-chat')
-        };
         const roomsList = document.getElementById('rooms-list');
-        const chatMessages = document.getElementById('chat-messages');
-        const inputs = {
-          roomName: document.getElementById('input-room-name'),
-          message: document.getElementById('input-message'),
-          userName: document.getElementById('input-user-name'),
-          userAge: document.getElementById('input-user-age'),
-          userBio: document.getElementById('input-user-bio'),
-          avatar: document.getElementById('input-avatar'),
-          editRoomName: document.getElementById('input-edit-room-name'),
-          editRoomMaxMembers: document.getElementById('input-edit-room-max-members'),
-          roomMaxMembers: document.getElementById('input-room-max-members'),
-          roomImage: document.getElementById('input-room-image'),
-          createRoomImage: document.getElementById('input-create-room-image'),
-          searchCode: document.getElementById('input-search-code'),
-          searchAccounts: document.getElementById('input-search-accounts'),
-          privateMessage: document.getElementById('input-private-message'),
-          userHandle: document.getElementById('input-user-handle')
-        };
-        const displays = {
-          roomCode: document.getElementById('display-room-code'),
-          chatRoomName: document.getElementById('chat-room-name'),
-          chatRoomCode: document.getElementById('chat-room-code'),
-          avatarPreview: document.getElementById('settings-avatar-preview'),
-          roomSettingsImagePreview: document.getElementById('room-settings-image-preview'),
-          createRoomImagePreview: document.getElementById('create-room-image-preview'),
-          chatRoomImage: document.getElementById('chat-room-image'),
-          chatRoomIcon: document.getElementById('chat-room-icon'),
-          modalUserProfile: document.getElementById('modal-user-profile'),
-          profileModalAvatar: document.getElementById('profile-modal-avatar'),
-          profileModalName: document.getElementById('profile-modal-name'),
-          profileModalUsername: document.getElementById('profile-modal-username'),
-          profileModalAge: document.getElementById('profile-modal-age'),
-          profileModalBio: document.getElementById('profile-modal-bio'),
-          profileModalRooms: document.getElementById('profile-modal-rooms'),
-          labelUserRooms: document.getElementById('label-user-rooms'),
-          modalUserActions: document.getElementById('modal-user-actions'),
-          actionsModalContent: document.getElementById('actions-modal-content'),
-          modalNotice: document.getElementById('modal-notice'),
-          modalRoomMembers: document.getElementById('modal-room-members'),
-          modalConfirm: document.getElementById('modal-confirm'),
-          confirmModalContent: document.getElementById('confirm-modal-content'),
-          confirmModalMessage: document.getElementById('confirm-modal-message'),
-          roomMembersList: document.getElementById('room-members-list'),
-          noticeModalMessage: document.getElementById('notice-modal-message'),
-          noticeModalContent: document.getElementById('notice-modal-content'),
-          searchContainer: document.getElementById('search-container'),
-          displayEditRoomCode: document.getElementById('display-edit-room-code'),
-          messageContextMenu: document.getElementById('message-context-menu'),
-          modalCropper: document.getElementById('modal-cropper'),
-          cropperImage: document.getElementById('cropper-image'),
-          screenInbox: document.getElementById('screen-inbox'),
-          inboxList: document.getElementById('inbox-list'),
-          screenPrivateChat: document.getElementById('screen-private-chat'),
-          privateChatMessages: document.getElementById('private-chat-messages'),
-          privateChatAvatar: document.getElementById('private-chat-avatar'),
-          privateChatName: document.getElementById('private-chat-name'),
-          privateChatUserInfo: document.getElementById('private-chat-user-info'),
-          labelMessageUser: document.getElementById('label-message-user'),
-          modalPackages: document.getElementById('modal-packages'),
-          packagesModalContent: document.getElementById('packages-modal-content'),
-          modalVip: document.getElementById('modal-vip'),
-          vipModalContent: document.getElementById('vip-modal-content'),
-          messageInputContainer: document.getElementById('message-input-container'),
-          joinRoomContainer: document.getElementById('join-room-container'),
-          leaveRoomContainer: document.getElementById('leave-room-container')
-        };
-        const buttons = {
-          viewAll: document.getElementById('btn-view-all'),
-          viewMy: document.getElementById('btn-view-my'),
-          joinedRooms: document.getElementById('btn-joined-rooms'),
-          closePackages: document.getElementById('btn-close-packages'),
-          closeVip: document.getElementById('btn-close-vip'),
-          subscribeVip: document.getElementById('btn-subscribe-vip'),
-          goCreate: document.getElementById('btn-go-create'),
-          backHome: document.getElementById('btn-back-home'),
-          cancelCreate: document.getElementById('btn-cancel-create'),
-          finishCreate: document.getElementById('btn-finish-create'),
-          typePublic: document.getElementById('btn-type-public'),
-          typePrivate: document.getElementById('btn-type-private'),
-          exitChat: document.getElementById('btn-exit-chat'),
-          sendMessage: document.getElementById('btn-send-message'),
-          confirmJoin: document.getElementById('btn-confirm-join'),
-          openSettings: document.getElementById('btn-open-settings'),
-          settingsBack: document.getElementById('btn-settings-back'),
-          toggleDark: document.getElementById('btn-toggle-dark'),
-          saveSettings: document.getElementById('btn-save-settings'),
-          toggleShowRooms: document.getElementById('btn-toggle-show-rooms'),
-          viewMembers: document.getElementById('btn-view-members'),
-          closeMembers: document.getElementById('btn-close-members'),
-          chatHeader: document.getElementById('chat-header'),
-          roomSettingsBack: document.getElementById('btn-room-settings-back'),
-          saveRoomSettings: document.getElementById('btn-save-room-settings'),
-          deleteRoom: document.getElementById('btn-delete-room'),
-          confirmYes: document.getElementById('btn-confirm-yes'),
-          confirmNo: document.getElementById('btn-confirm-no'),
-          closeProfile: document.getElementById('btn-close-profile'),
-          closeActions: document.getElementById('btn-close-actions'),
-          actionRemove: document.getElementById('btn-action-remove'),
-          actionProfile: document.getElementById('btn-action-profile'),
-          closeNotice: document.getElementById('btn-close-notice'),
-          toggleSearch: document.getElementById('btn-toggle-search'),
-          copyRoomCode: document.getElementById('btn-copy-room-code'),
-          privateMessages: document.getElementById('btn-private-messages'),
-          deleteMessageBtn: document.getElementById('btn-delete-message-action'),
-          editMessageBtn: document.getElementById('btn-edit-message-action'),
-          copyMessageBtn: document.getElementById('btn-copy-message-action'),
-          toggleMuteUsers: document.getElementById('btn-toggle-mute-users'),
-          cropperCancel: document.getElementById('btn-cropper-cancel'),
-          cropperConfirm: document.getElementById('btn-cropper-confirm'),
-          cropperAspect: document.getElementById('btn-cropper-aspect'),
-          messageUser: document.getElementById('btn-message-user'),
-          inboxBack: document.getElementById('btn-inbox-back'),
-          exitPrivateChat: document.getElementById('btn-exit-private-chat'),
-          sendPrivateMessage: document.getElementById('btn-send-private-message'),
-          settingsMessageSelf: document.getElementById('btn-settings-message-self'),
-          leaveRoom: document.getElementById('btn-leave-room')
-        };
         const darkToggleCircle = document.getElementById('dark-toggle-circle');
 
         // Mobile Keyboard Smooth Handling
@@ -1763,8 +1794,8 @@
           window.visualViewport.addEventListener('scroll', handleViewportChange);
           
           // Focus listeners for immediate scroll
-          const inputs = ['input-message', 'input-private-message'];
-          inputs.forEach(id => {
+          const inputIds = ['input-message', 'input-private-message'];
+          inputIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
               el.addEventListener('focus', () => {
@@ -1784,22 +1815,33 @@
         onAuthStateChanged(auth, async (user) => {
           let targetPage = 'auth';
           
-          if (user) {
-            if (mockDb.users[user.uid]) {
-              userProfile = mockDb.users[user.uid];
-            } else {
-              userProfile = {
-                uid: user.uid,
-                name: user.displayName || translations.ar.defaultUserName,
-                age: '',
-                bio: '',
-                avatar: user.photoURL || 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
-                showRoomsOnProfile: true
-              };
-              mockDb.users[user.uid] = userProfile;
-              saveMockDb();
+          try {
+            if (user) {
+              const userRef = doc(db, 'users', user.uid);
+              const userSnap = await getDoc(userRef);
+              
+              if (userSnap.exists()) {
+                userProfile = { ...userSnap.data(), status: 'online', lastSeen: Date.now() };
+                await updateDoc(userRef, { status: 'online', lastSeen: Date.now() });
+              } else {
+                userProfile = {
+                  uid: user.uid,
+                  name: user.displayName || (user.email ? user.email.split('@')[0] : translations.ar.defaultUserName),
+                  handle: user.email ? `@${user.email.split('@')[0]}` : '',
+                  age: '',
+                  bio: '',
+                  avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
+                  showRoomsOnProfile: true,
+                  status: 'online',
+                  lastSeen: Date.now()
+                };
+                await setDoc(userRef, userProfile);
+              }
+              targetPage = 'app-container';
             }
-            targetPage = 'app-container';
+          } catch (error) {
+            console.error("Auth initialization error:", error);
+            targetPage = 'auth';
           }
 
           // Ensure splash is visible for at least 3 seconds to show animation
@@ -1835,7 +1877,6 @@
             snapshot.docs.forEach(doc => {
               const data = { id: doc.id, ...doc.data() };
               usersCache[doc.id] = data;
-              mockDb.users[doc.id] = data;
               
               // If it's the current user, update the global userProfile too
               if (userProfile && doc.id === userProfile.uid) {
@@ -1846,7 +1887,7 @@
             if (currentStep === 'chat') renderMessages();
             if (currentStep === 'privateChat') renderPrivateMessages();
             if (currentStep === 'inbox') renderInbox();
-          });
+          }, (error) => handleFirestoreError(error, OperationType.GET, 'users'));
 
           // Listen for Rooms
           onSnapshot(collection(db, 'rooms'), (snapshot) => {
@@ -1854,59 +1895,69 @@
             myRooms = onlineRooms.filter(r => r.creatorUid === userProfile.uid || (r.membersList && r.membersList.some(m => m.uid === userProfile.uid)));
             renderRooms();
 
-          // If we are currently in a room, update its header info if it changed
-          if (activeRoomId) {
-            const currentRoom = onlineRooms.find(r => r.id === activeRoomId);
-            if (currentRoom) {
-              if (displays.chatRoomName) displays.chatRoomName.innerText = currentRoom.name;
-              if (currentRoom.image) {
-                displays.chatRoomImage.src = currentRoom.image;
-                displays.chatRoomImage.classList.remove('hidden');
-                displays.chatRoomIcon.classList.add('hidden');
-              } else {
-                displays.chatRoomImage.classList.add('hidden');
-                displays.chatRoomIcon.classList.remove('hidden');
-              }
+            // If we are currently in a room, update its header info if it changed
+            if (activeRoomId) {
+              const currentRoom = onlineRooms.find(r => r.id === activeRoomId);
+              if (currentRoom) {
+                if (displays.chatRoomName) displays.chatRoomName.innerText = currentRoom.name;
+                if (currentRoom.image) {
+                  displays.chatRoomImage.src = currentRoom.image;
+                  displays.chatRoomImage.classList.remove('hidden');
+                  displays.chatRoomIcon.classList.add('hidden');
+                } else {
+                  displays.chatRoomImage.classList.add('hidden');
+                  displays.chatRoomIcon.classList.remove('hidden');
+                }
 
-              // Update membership UI
-              const isMember = currentRoom.membersList && currentRoom.membersList.find(m => m.uid === userProfile.uid);
-              if (isMember) {
-                displays.messageInputContainer.classList.remove('hidden');
-                displays.joinRoomContainer.classList.add('hidden');
-              } else {
-                displays.messageInputContainer.classList.add('hidden');
-                displays.joinRoomContainer.classList.remove('hidden');
-              }
-              buttons.viewMembers.classList.remove('hidden');
-              
-              // Update input state based on mute status
-              if (currentRoom.isMuted && currentRoom.creatorUid !== userProfile.uid) {
-                inputs.message.placeholder = translations.ar.messagingDisabled;
-                inputs.message.disabled = true;
-                buttons.sendMessage.classList.add('opacity-50', 'cursor-not-allowed');
-              } else {
-                inputs.message.placeholder = translations.ar.typeMessage;
-                inputs.message.disabled = false;
-                buttons.sendMessage.classList.remove('opacity-50', 'cursor-not-allowed');
-              }
-              
-              // Update mute toggle if settings screen is open
-              if (currentStep === 'roomSettings') {
-                updateMuteUsersToggle(currentRoom.isMuted);
+                // Update membership UI
+                const isMember = currentRoom.membersList && currentRoom.membersList.find(m => m.uid === userProfile.uid);
+                if (isMember) {
+                  displays.messageInputContainer.classList.remove('hidden');
+                  displays.joinRoomContainer.classList.add('hidden');
+                } else {
+                  displays.messageInputContainer.classList.add('hidden');
+                  displays.joinRoomContainer.classList.remove('hidden');
+                }
+                buttons.viewMembers.classList.remove('hidden');
+                
+                // Update input state based on mute status
+                if (currentRoom.isMuted && currentRoom.creatorUid !== userProfile.uid) {
+                  inputs.messageInput.placeholder = translations.ar.messagingDisabled;
+                  inputs.messageInput.disabled = true;
+                  buttons.sendBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                  inputs.messageInput.placeholder = translations.ar.typeMessage;
+                  inputs.messageInput.disabled = false;
+                  buttons.sendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+                // Update mute toggle if settings screen is open
+                if (currentStep === 'roomSettings') {
+                  updateMuteUsersToggle(currentRoom.isMuted);
+                }
               }
             }
-          }
-          });
+          }, (error) => handleFirestoreError(error, OperationType.GET, 'rooms'));
 
           // Listen for Private Messages
-          onSnapshot(collection(db, 'privateMessages'), (snapshot) => {
+          const pmQuery = query(
+            collection(db, 'privateMessages'),
+            or(
+              where('fromUid', '==', userProfile.uid),
+              where('toUid', '==', userProfile.uid)
+            )
+          );
+          onSnapshot(pmQuery, (snapshot) => {
             const allMsgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Sort by timestamp
+            allMsgs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            
             const convs = {};
             allMsgs.forEach(msg => {
               if (msg.fromUid !== userProfile.uid && msg.toUid !== userProfile.uid) return;
               const otherUid = msg.fromUid === userProfile.uid ? msg.toUid : msg.fromUid;
               if (!convs[otherUid]) {
-                const otherUser = mockDb.users[otherUid] || { uid: otherUid, name: translations.ar.otherUser, avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg' };
+                const otherUser = usersCache[otherUid] || { uid: otherUid, name: translations.ar.otherUser, avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg' };
                 convs[otherUid] = { user: otherUser, messages: [] };
               }
               convs[otherUid].messages.push({
@@ -1922,67 +1973,102 @@
             if (activePrivateChatId) {
               renderPrivateMessages(isNew);
             }
-          });
+          }, (error) => handleFirestoreError(error, OperationType.GET, 'privateMessages'));
         }
 
-        async function login() {
-          try {
-            await signInWithPopup(auth, googleProvider);
-          } catch (error) {
-            console.error("Login error:", error);
+        async function handleAuth(isSignup = false) {
+          const username = isSignup ? inputs.signupUsername.value.trim() : inputs.loginUsername.value.trim();
+          const password = isSignup ? inputs.signupPassword.value : inputs.loginPassword.value;
+          const confirm = isSignup ? inputs.signupConfirm.value : null;
+
+          if (!username || !password || (isSignup && !confirm)) {
+            showNotice('يرجى ملء جميع الحقول');
+            return;
           }
-        }
-        window.login = login;
 
-        async function handleGoogleAuth(isSignup = false) {
+          if (isSignup && password !== confirm) {
+            showNotice('كلمات المرور غير متطابقة');
+            return;
+          }
+
+          // Convert @username to email
+          const cleanUsername = username.startsWith('@') ? username.substring(1) : username;
+          const email = `${cleanUsername.toLowerCase()}@nilechat.com`;
+
           try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-            
-            // Check if user exists in mockDb
-            if (!mockDb.users[user.uid]) {
-              // Create a new profile if it doesn't exist
-              userProfile = {
-                uid: user.uid,
-                name: user.displayName || translations.ar.defaultUserName,
-                handle: '',
-                age: '',
-                bio: '',
-                avatar: user.photoURL || 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
-                showRoomsOnProfile: true
-              };
-              mockDb.users[user.uid] = userProfile;
-              saveMockDb();
+            let userCredential;
+            if (isSignup) {
+              userCredential = await createUserWithEmailAndPassword(auth, email, password);
             } else {
-              userProfile = mockDb.users[user.uid];
+              userCredential = await signInWithEmailAndPassword(auth, email, password);
             }
             
-            auth.currentUser = { uid: user.uid, displayName: userProfile.name };
-            localStorage.setItem('nc_current_user', JSON.stringify(auth.currentUser));
-            notifyAuthChange();
+            const user = userCredential.user;
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            
+            if (isSignup) {
+              // Update Auth profile with display name
+              await updateProfile(user, { displayName: cleanUsername });
+              
+              userProfile = {
+                uid: user.uid,
+                name: cleanUsername, // Use username as initial display name
+                handle: `@${cleanUsername}`,
+                age: '',
+                bio: '',
+                avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
+                showRoomsOnProfile: true,
+                status: 'online',
+                lastSeen: Date.now()
+              };
+              await setDoc(userRef, userProfile);
+            } else {
+              if (userSnap.exists()) {
+                userProfile = { ...userSnap.data(), status: 'online', lastSeen: Date.now() };
+                await updateDoc(userRef, { status: 'online', lastSeen: Date.now() });
+              }
+            }
+            
             enterApp();
           } catch (error) {
-            console.error(isSignup ? "Signup error:" : "Login error:", error);
+            console.error("Auth error:", error);
+            let msg = 'حدث خطأ أثناء المصادقة';
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+              msg = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+            } else if (error.code === 'auth/email-already-in-use') {
+              msg = 'اسم المستخدم هذا مستخدم بالفعل';
+            } else if (error.code === 'auth/weak-password') {
+              msg = 'كلمة المرور ضعيفة جداً';
+            }
+            showNotice(msg);
           }
         }
-        window.loginWithGoogle = () => handleGoogleAuth(false);
-        window.signupWithGoogle = () => handleGoogleAuth(true);
+        window.loginWithEmail = () => handleAuth(false);
+        window.signupWithEmail = () => handleAuth(true);
 
-        async function loginWithPhone() {}
-        window.loginWithPhone = loginWithPhone;
-
-        async function signup() {}
-        window.signup = signup;
-
-        async function signupWithPhone() {}
-        window.signupWithPhone = signupWithPhone;
-
-        function logout() {
-          auth.currentUser = null;
-          localStorage.removeItem('nc_current_user');
-          location.reload();
+        async function logout() {
+          try {
+            if (userProfile && userProfile.uid) {
+              await updateDoc(doc(db, 'users', userProfile.uid), { status: 'offline', lastSeen: Date.now() });
+            }
+            await signOut(auth);
+            userProfile = null;
+            location.reload();
+          } catch (error) {
+            console.error("Logout error:", error);
+          }
         }
         window.logout = logout;
+        // Update user status to 'offline' when tab is closed
+        window.addEventListener('beforeunload', () => {
+          if (userProfile && userProfile.uid) {
+            // Using navigator.sendBeacon or a simple updateDoc might not work reliably on close,
+            // but for Firestore, we can try a quick update.
+            // Note: Realtime Database's onDisconnect is better for this, but we are using Firestore.
+            updateDoc(doc(db, 'users', userProfile.uid), { status: 'offline', lastSeen: Date.now() });
+          }
+        });
         let isDarkMode = false;
         // Utils
         function generateCode() {
@@ -2214,20 +2300,20 @@
             fragment.appendChild(div);
           });
 
-          const scrollOffsetFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop;
-          const isAtBottom = scrollOffsetFromBottom <= chatMessages.clientHeight + 100;
+          const scrollOffsetFromBottom = displays.chatMessages.scrollHeight - displays.chatMessages.scrollTop;
+          const isAtBottom = scrollOffsetFromBottom <= displays.chatMessages.clientHeight + 100;
           
-          chatMessages.innerHTML = '';
-          chatMessages.appendChild(fragment);
+          displays.chatMessages.innerHTML = '';
+          displays.chatMessages.appendChild(fragment);
           
           if (shouldAnimateLast || isAtBottom) {
-            chatMessages.scrollTo({
-              top: chatMessages.scrollHeight,
+            displays.chatMessages.scrollTo({
+              top: displays.chatMessages.scrollHeight,
               behavior: shouldAnimateLast ? 'smooth' : 'auto'
             });
           } else {
             // Maintain scroll position relative to bottom to keep older messages "static"
-            chatMessages.scrollTop = chatMessages.scrollHeight - scrollOffsetFromBottom;
+            displays.chatMessages.scrollTop = displays.chatMessages.scrollHeight - scrollOffsetFromBottom;
           }
         }
 
@@ -2237,8 +2323,7 @@
           activeRoomId = room.id;
           renderMessages(); // Render cached messages immediately
           
-          const dbRoom = mockDb.rooms.find(r => r.id === room.id);
-          const isMember = dbRoom && dbRoom.membersList && dbRoom.membersList.find(m => m.uid === userProfile.uid);
+          const isMember = room.membersList && room.membersList.find(m => m.uid === userProfile.uid);
           
           if (isMember) {
             displays.messageInputContainer.classList.remove('hidden');
@@ -2268,15 +2353,15 @@
 
           // Handle Muted State
           if (room.isMuted && room.creatorUid !== userProfile.uid) {
-            inputs.message.disabled = true;
-            inputs.message.placeholder = translations.ar.messagingDisabled;
-            buttons.sendMessage.disabled = true;
-            buttons.sendMessage.classList.add('opacity-50', 'cursor-not-allowed');
+            inputs.messageInput.disabled = true;
+            inputs.messageInput.placeholder = translations.ar.messagingDisabled;
+            buttons.sendBtn.disabled = true;
+            buttons.sendBtn.classList.add('opacity-50', 'cursor-not-allowed');
           } else {
-            inputs.message.disabled = false;
-            inputs.message.placeholder = translations.ar.typeMessage;
-            buttons.sendMessage.disabled = false;
-            buttons.sendMessage.classList.remove('opacity-50', 'cursor-not-allowed');
+            inputs.messageInput.disabled = false;
+            inputs.messageInput.placeholder = translations.ar.typeMessage;
+            buttons.sendBtn.disabled = false;
+            buttons.sendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
           }
           
           // Listen for messages in this room
@@ -2359,8 +2444,7 @@
               buttons.confirmJoin.innerText = originalText;
             }, 300);
           } catch (error) {
-            console.error("Join room error:", error);
-            showNotice("حدث خطأ أثناء الانضمام للغرفة.");
+            handleFirestoreError(error, OperationType.UPDATE, `rooms/${activeRoomId}`);
             buttons.confirmJoin.disabled = false;
             buttons.confirmJoin.innerText = originalText;
           }
@@ -2414,11 +2498,15 @@
             // Open the new room directly
             joinRoom({ id: roomRef.id, ...newRoom });
           } catch (error) {
-            console.error("Create room error:", error);
+            handleFirestoreError(error, OperationType.CREATE, `rooms`);
           }
         }
 
         async function sendMessage() {
+          if (!auth.currentUser) {
+            showNotice('يجب تسجيل الدخول أولاً');
+            return;
+          }
           const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
           if (!room) return;
           
@@ -2427,12 +2515,12 @@
             return;
           }
 
-          const text = inputs.message.value.trim();
+          const text = inputs.messageInput.value.trim();
           if (!text || !activeRoomId) return;
 
           // Optimistic UI: Clear input immediately
-          inputs.message.value = '';
-          inputs.message.focus();
+          inputs.messageInput.value = '';
+          inputs.messageInput.focus();
 
           const msg = {
             timestamp: Date.now(),
@@ -2445,7 +2533,7 @@
           try {
             await addDoc(collection(db, 'rooms', activeRoomId, 'messages'), msg);
           } catch (error) {
-            console.error("Send message error:", error);
+            handleFirestoreError(error, OperationType.WRITE, `rooms/${activeRoomId}/messages`);
           }
         }
 
@@ -2458,7 +2546,7 @@
               await deleteDoc(doc(db, 'rooms', activeRoomId, 'messages', messageId));
             }
           } catch (error) {
-            console.error("Delete message error:", error);
+            handleFirestoreError(error, OperationType.DELETE, isPrivateMode ? `privateMessages/${messageId}` : `rooms/${activeRoomId}/messages/${messageId}`);
           }
         }
         window.deleteMessage = deleteMessage;
@@ -2502,12 +2590,11 @@
           
           try {
             await setDoc(doc(db, 'users', userProfile.uid), userProfile);
+            showScreen('home');
+            renderRooms();
           } catch (error) {
-            console.error("Save settings error:", error);
+            handleFirestoreError(error, OperationType.WRITE, `users/${userProfile.uid}`);
           }
-          
-          showScreen('home');
-          renderRooms();
         }
 
         function openRoomSettings() {
@@ -2537,7 +2624,7 @@
           try {
             await updateDoc(doc(db, 'rooms', activeRoomId), { isMuted: newMuteState });
           } catch (error) {
-            console.error("Toggle mute error:", error);
+            handleFirestoreError(error, OperationType.UPDATE, `rooms/${activeRoomId}`);
             // Revert on error
             updateMuteUsersToggle(room.isMuted);
           }
@@ -2573,7 +2660,7 @@
             });
             showScreen('chat');
           } catch (error) {
-            console.error("Save room settings error:", error);
+            handleFirestoreError(error, OperationType.UPDATE, `rooms/${activeRoomId}`);
           }
         }
 
@@ -2584,8 +2671,10 @@
           displays.profileModalAvatar.src = latestProfile.avatar;
           if (displays.profileModalName) displays.profileModalName.innerText = latestProfile.name;
           if (displays.profileModalUsername) {
-            displays.profileModalUsername.innerText = latestProfile.handle ? `@${latestProfile.handle}` : '';
-            displays.profileModalUsername.classList.toggle('hidden', !latestProfile.handle);
+            let handle = latestProfile.handle || '';
+            if (handle && !handle.startsWith('@')) handle = `@${handle}`;
+            displays.profileModalUsername.innerText = handle;
+            displays.profileModalUsername.classList.toggle('hidden', !handle);
           }
           if (displays.profileModalAge) displays.profileModalAge.innerText = latestProfile.age ? `${latestProfile.age} ${translations.ar.years}` : '';
           if (displays.profileModalBio) displays.profileModalBio.innerText = latestProfile.bio || translations.ar.noBio;
@@ -2628,14 +2717,14 @@
           displays.modalUserProfile.classList.remove('hidden');
           setTimeout(() => {
             displays.modalUserProfile.classList.add('opacity-100');
-            document.getElementById('profile-modal-content').classList.remove('scale-90');
+            displays.profileModalContent.classList.remove('scale-90');
           }, 10);
         }
         window.showUserProfile = showUserProfile;
 
         function closeUserProfile() {
           displays.modalUserProfile.classList.remove('opacity-100');
-          document.getElementById('profile-modal-content').classList.add('scale-90');
+          displays.profileModalContent.classList.add('scale-90');
           setTimeout(() => {
             displays.modalUserProfile.classList.add('hidden');
           }, 300);
@@ -2678,7 +2767,7 @@
           displays.modalRoomMembers.classList.remove('hidden');
           setTimeout(() => {
             displays.modalRoomMembers.classList.add('opacity-100');
-            document.getElementById('members-modal-content').classList.remove('scale-90');
+            displays.membersModalContent.classList.remove('scale-90');
           }, 10);
 
           // Show leave room button if user is a member and not the creator
@@ -2694,7 +2783,7 @@
 
         function closeRoomMembers() {
           displays.modalRoomMembers.classList.remove('opacity-100');
-          document.getElementById('members-modal-content').classList.add('scale-90');
+          displays.membersModalContent.classList.add('scale-90');
           setTimeout(() => {
             displays.modalRoomMembers.classList.add('hidden');
           }, 300);
@@ -2734,27 +2823,26 @@
           }, 300);
         }
 
-        function removeUserFromRoom() {
-          if (!selectedUserProfile) return;
-          showNotice(translations.ar.userRemoved.replace('{name}', selectedUserProfile.name));
-          closeUserActions();
-        }
+        async function removeUserFromRoom() {
+          if (!selectedUserProfile || !activeRoomId) return;
+          
+          const room = [...onlineRooms, ...myRooms].find(r => r.id === activeRoomId);
+          if (!room) return;
 
-        function showNotice(message) {
-          if (displays.noticeModalMessage) displays.noticeModalMessage.innerText = message;
-          displays.modalNotice.classList.remove('hidden');
-          setTimeout(() => {
-            displays.modalNotice.classList.add('opacity-100');
-            displays.noticeModalContent.classList.remove('scale-90');
-          }, 10);
-        }
+          try {
+            const newMembersList = (room.membersList || []).filter(m => m.uid !== selectedUserProfile.uid);
+            const newMembersCount = Math.max(0, (room.members || 0) - 1);
 
-        function closeNotice() {
-          displays.modalNotice.classList.remove('opacity-100');
-          displays.noticeModalContent.classList.add('scale-90');
-          setTimeout(() => {
-            displays.modalNotice.classList.add('hidden');
-          }, 300);
+            await updateDoc(doc(db, 'rooms', activeRoomId), {
+              membersList: newMembersList,
+              members: newMembersCount
+            });
+
+            showNotice(translations.ar.userRemoved.replace('{name}', selectedUserProfile.name));
+            closeUserActions();
+          } catch (error) {
+            handleFirestoreError(error, OperationType.UPDATE, `rooms/${activeRoomId}`);
+          }
         }
 
         async function leaveRoomFromDb() {
@@ -2776,8 +2864,7 @@
             showScreen('home');
             renderRooms();
           } catch (error) {
-            console.error("Leave room error:", error);
-            showNotice("حدث خطأ أثناء الخروج من الغرفة");
+            handleFirestoreError(error, OperationType.UPDATE, `rooms/${activeRoomId}`);
           }
         }
 
@@ -2985,7 +3072,7 @@
         buttons.viewAll.onclick = () => switchViewMode('online');
         buttons.viewMy.onclick = () => switchViewMode('my');
         buttons.joinedRooms.onclick = () => switchViewMode('myRooms');
-        buttons.goCreate.onclick = () => {
+        buttons.createRoomBtn.onclick = () => {
           const userCreatedRoomsCount = onlineRooms.filter(r => r.creatorUid === userProfile.uid).length;
           if (userCreatedRoomsCount >= 2) {
             displays.modalVip.classList.remove('hidden');
@@ -3003,7 +3090,7 @@
           buttons.typePublic.click();
           buttons.finishCreate.disabled = true;
           buttons.finishCreate.className = "flex-[2] py-4 font-bold rounded-3xl transition-all flex items-center justify-center gap-3 active:scale-95 bg-slate-200 text-slate-400 cursor-not-allowed";
-          showScreen('create');
+          showScreen('createRoom');
         };
         buttons.backHome.onclick = buttons.cancelCreate.onclick = () => {
           showScreen('home');
@@ -3033,11 +3120,11 @@
         };
         buttons.finishCreate.onclick = createRoom;
         buttons.confirmJoin.onclick = confirmJoinRoom;
-        buttons.sendMessage.onmousedown = buttons.sendMessage.ontouchstart = (e) => {
+        buttons.sendBtn.onmousedown = buttons.sendBtn.ontouchstart = (e) => {
           e.preventDefault();
           sendMessage();
         };
-        inputs.message.onkeydown = (e) => { 
+        inputs.messageInput.onkeydown = (e) => { 
           if (e.key === 'Enter') {
             e.preventDefault();
             sendMessage();
@@ -3143,12 +3230,12 @@
             return nameMatch || handleMatch;
           });
 
-          // 2. If searching, also look for other users in usersCache/mockDb
+          // 2. If searching, also look for other users in usersCache
           let searchResults = [];
           if (searchTerm) {
             const cleanSearch = searchTerm.replace('@', '');
-            // Search in usersCache and mockDb.users
-            const allUsers = { ...mockDb.users, ...usersCache };
+            // Search in usersCache
+            const allUsers = usersCache;
             Object.values(allUsers).forEach(user => {
               // Don't show myself
               if (user.uid === userProfile.uid) return;
@@ -3379,7 +3466,7 @@
           try {
             await addDoc(collection(db, 'privateMessages'), msg);
           } catch (error) {
-            console.error("Send private message error:", error);
+            handleFirestoreError(error, OperationType.WRITE, `privateMessages`);
           }
         }
 
@@ -3505,19 +3592,19 @@
         };
 
         // Init
-        inputs.message.onfocus = () => {
+        inputs.messageInput.onfocus = () => {
           // Immediate scroll and then multiple delays to catch keyboard height change
-          chatMessages.scrollTop = chatMessages.scrollHeight;
+          displays.chatMessages.scrollTop = displays.chatMessages.scrollHeight;
           [50, 100, 200, 300, 400, 500].forEach(delay => {
             setTimeout(() => {
-              chatMessages.scrollTop = chatMessages.scrollHeight;
+              displays.chatMessages.scrollTop = displays.chatMessages.scrollHeight;
             }, delay);
           });
         };
 
-        inputs.message.onblur = () => {
+        inputs.messageInput.onblur = () => {
           setTimeout(() => {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            displays.chatMessages.scrollTop = displays.chatMessages.scrollHeight;
           }, 100);
         };
 
@@ -3542,7 +3629,7 @@
           let vh = height * 0.01;
           document.documentElement.style.setProperty('--vh', `${vh}px`);
           if (currentStep === 'chat') {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            displays.chatMessages.scrollTop = displays.chatMessages.scrollHeight;
           }
           if (currentStep === 'privateChat') {
             displays.privateChatMessages.scrollTop = displays.privateChatMessages.scrollHeight;
