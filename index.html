@@ -1077,7 +1077,7 @@
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+      import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
       import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, or, orderBy, serverTimestamp, getDocFromServer } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
       import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
 
@@ -1811,8 +1811,11 @@
           });
         }
 
+        let splashHandled = false;
         // Auth Listener
         onAuthStateChanged(auth, async (user) => {
+          if (splashHandled) return;
+          
           let targetPage = 'auth';
           
           try {
@@ -1824,10 +1827,15 @@
                 userProfile = { ...userSnap.data(), status: 'online', lastSeen: Date.now() };
                 await updateDoc(userRef, { status: 'online', lastSeen: Date.now() });
               } else {
+                // Generate random name for anonymous or new user
+                const randomId = Math.floor(1000 + Math.random() * 9000);
+                const randomName = `مستخدم_${randomId}`;
+                const randomHandle = `user${randomId}`;
+                
                 userProfile = {
                   uid: user.uid,
-                  name: user.displayName || (user.email ? user.email.split('@')[0] : translations.ar.defaultUserName),
-                  handle: user.email ? `@${user.email.split('@')[0]}` : '',
+                  name: user.displayName || randomName,
+                  handle: user.email ? `@${user.email.split('@')[0]}` : `@${randomHandle}`,
                   age: '',
                   bio: '',
                   avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
@@ -1838,10 +1846,17 @@
                 await setDoc(userRef, userProfile);
               }
               targetPage = 'app-container';
+              splashHandled = true;
+            } else {
+              // Automatically sign in anonymously if no user
+              await signInAnonymously(auth);
+              return; // onAuthStateChanged will trigger again with the user
             }
           } catch (error) {
             console.error("Auth initialization error:", error);
+            // If anonymous sign in fails, still try to show something or retry
             targetPage = 'auth';
+            splashHandled = true;
           }
 
           // Ensure splash is visible for at least 3 seconds to show animation
