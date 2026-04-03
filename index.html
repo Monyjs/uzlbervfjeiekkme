@@ -344,52 +344,16 @@
         </div>
     </div>
 
-    <!-- 🔐 Auth -->
+    <!-- 🔐 Auth (Redirecting...) -->
     <div id="auth" class="page fade-in">
         <div class="auth-container">
             <img class="auth-logo" src="https://i.pinimg.com/736x/92/f8/f9/92f8f92a91bf7de670dddb7b1171a250.jpg">
             <div class="auth-title">Nilechat</div>
-            <button class="auth-btn main-btn" id="signupText" onclick="showPage('signupPage')">إنشاء حساب</button>
-            <button class="auth-btn secondary-btn" id="loginText" onclick="showPage('loginPage')">لدي حساب بالفعل</button>
+            <div class="text-blue-600 font-bold animate-pulse">جاري الدخول...</div>
         </div>
     </div>
 
-    <!-- 🔑 تسجيل الدخول -->
-    <div id="loginPage" class="page fade-in-fast">
-        <div class="back-btn" onclick="showPage('auth')" id="back1">رجوع</div>
-        <div class="auth-container">
-            <div class="auth-title" id="loginTitle">تسجيل الدخول</div>
-            <div class="w-full space-y-4">
-                <div class="relative">
-                    <input type="text" id="input-login-username" placeholder="@username" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
-                </div>
-                <div class="relative">
-                    <input type="password" id="input-login-password" placeholder="كلمة المرور" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
-                </div>
-                <button class="auth-btn main-btn w-full" id="btn-finish-login" onclick="loginWithEmail()">دخول</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🧑 إنشاء حساب -->
-    <div id="signupPage" class="page fade-in-fast">
-        <div class="back-btn" onclick="showPage('auth')" id="back2">رجوع</div>
-        <div class="auth-container">
-            <div class="auth-title" id="signupTitle">إنشاء حساب</div>
-            <div class="w-full space-y-4">
-                <div class="relative">
-                    <input type="text" id="input-signup-username" placeholder="@username" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
-                </div>
-                <div class="relative">
-                    <input type="password" id="input-signup-password" placeholder="كلمة المرور" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
-                </div>
-                <div class="relative">
-                    <input type="password" id="input-signup-confirm" placeholder="تأكيد كلمة المرور" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right">
-                </div>
-                <button class="auth-btn main-btn w-full" id="btn-finish-signup" onclick="signupWithEmail()">إنشاء</button>
-            </div>
-        </div>
-    </div>
+    <!-- Removed loginPage and signupPage as requested -->
 
     <div id="app-container" class="page w-full bg-white h-screen max-h-screen flex-col items-stretch relative transition-colors duration-300">
       
@@ -1108,8 +1072,6 @@
         Object.assign(screens, {
           splash: document.getElementById('splash'),
           auth: document.getElementById('auth'),
-          login: document.getElementById('loginPage'),
-          signup: document.getElementById('signupPage'),
           home: document.getElementById('screen-home'),
           chat: document.getElementById('screen-chat'),
           createRoom: document.getElementById('screen-create'),
@@ -1119,11 +1081,6 @@
           privateChat: document.getElementById('screen-private-chat')
         });
         Object.assign(inputs, {
-          loginUsername: document.getElementById('input-login-username'),
-          loginPassword: document.getElementById('input-login-password'),
-          signupUsername: document.getElementById('input-signup-username'),
-          signupPassword: document.getElementById('input-signup-password'),
-          signupConfirm: document.getElementById('input-signup-confirm'),
           userName: document.getElementById('input-user-name'),
           userAge: document.getElementById('input-user-age'),
           userBio: document.getElementById('input-user-bio'),
@@ -1537,32 +1494,7 @@
                     el.innerText = t.nilechat;
                 }
             });
-            const signupText = document.getElementById("signupText");
-            if (signupText) signupText.innerText = t.signupTitle;
-            const loginText = document.getElementById("loginText");
-            if (loginText) loginText.innerText = t.alreadyHaveAccount;
             
-            const loginTitle = document.getElementById("loginTitle");
-            if (loginTitle) loginTitle.innerText = t.loginTitle;
-            const signupTitle = document.getElementById("signupTitle");
-            if (signupTitle) signupTitle.innerText = t.signupTitle;
-            
-            const loginUsername = document.getElementById("input-login-username");
-            if (loginUsername) loginUsername.placeholder = t.usernamePlaceholder;
-            const loginPassword = document.getElementById("input-login-password");
-            if (loginPassword) loginPassword.placeholder = t.passwordPlaceholder;
-            const finishLogin = document.getElementById("btn-finish-login");
-            if (finishLogin) finishLogin.innerText = t.loginBtn;
-            
-            const signupUsername = document.getElementById("input-signup-username");
-            if (signupUsername) signupUsername.placeholder = t.usernamePlaceholder;
-            const signupPassword = document.getElementById("input-signup-password");
-            if (signupPassword) signupPassword.placeholder = t.passwordPlaceholder;
-            const signupConfirm = document.getElementById("input-signup-confirm");
-            if (signupConfirm) signupConfirm.placeholder = t.confirmPasswordPlaceholder;
-            const finishSignup = document.getElementById("btn-finish-signup");
-            if (finishSignup) finishSignup.innerText = t.signupBtn;
-
             // Update Main App UI
             const homeTitle = document.getElementById("home-title");
             if (homeTitle) {
@@ -1744,7 +1676,8 @@
 
         window.enterApp = function() {
             if (!auth.currentUser) {
-                showPage('auth');
+                // Try to sign in anonymously if somehow lost
+                signInAnonymously(auth);
                 return;
             }
             showPage('app-container');
@@ -1991,77 +1924,7 @@
           }, (error) => handleFirestoreError(error, OperationType.GET, 'privateMessages'));
         }
 
-        async function handleAuth(isSignup = false) {
-          const username = isSignup ? inputs.signupUsername.value.trim() : inputs.loginUsername.value.trim();
-          const password = isSignup ? inputs.signupPassword.value : inputs.loginPassword.value;
-          const confirm = isSignup ? inputs.signupConfirm.value : null;
-
-          if (!username || !password || (isSignup && !confirm)) {
-            showNotice('يرجى ملء جميع الحقول');
-            return;
-          }
-
-          if (isSignup && password !== confirm) {
-            showNotice('كلمات المرور غير متطابقة');
-            return;
-          }
-
-          // Convert @username to email
-          const cleanUsername = username.startsWith('@') ? username.substring(1) : username;
-          const email = `${cleanUsername.toLowerCase()}@nilechat.com`;
-
-          try {
-            let userCredential;
-            if (isSignup) {
-              userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            } else {
-              userCredential = await signInWithEmailAndPassword(auth, email, password);
-            }
-            
-            const user = userCredential.user;
-            const userRef = doc(db, 'users', user.uid);
-            const userSnap = await getDoc(userRef);
-            
-            if (isSignup) {
-              // Update Auth profile with display name
-              await updateProfile(user, { displayName: cleanUsername });
-              
-              userProfile = {
-                uid: user.uid,
-                name: cleanUsername, // Use username as initial display name
-                handle: `@${cleanUsername}`,
-                age: '',
-                bio: '',
-                avatar: 'https://i.pinimg.com/736x/f6/87/a1/f687a1ab0f1730f5af5756d1bfcc793d.jpg',
-                showRoomsOnProfile: true,
-                status: 'online',
-                lastSeen: Date.now()
-              };
-              await setDoc(userRef, userProfile);
-            } else {
-              if (userSnap.exists()) {
-                userProfile = { ...userSnap.data(), status: 'online', lastSeen: Date.now() };
-                await updateDoc(userRef, { status: 'online', lastSeen: Date.now() });
-              }
-            }
-            
-            enterApp();
-          } catch (error) {
-            console.error("Auth error:", error);
-            let msg = 'حدث خطأ أثناء المصادقة';
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-              msg = 'اسم المستخدم أو كلمة المرور غير صحيحة';
-            } else if (error.code === 'auth/email-already-in-use') {
-              msg = 'اسم المستخدم هذا مستخدم بالفعل';
-            } else if (error.code === 'auth/weak-password') {
-              msg = 'كلمة المرور ضعيفة جداً';
-            }
-            showNotice(msg);
-          }
-        }
-        window.loginWithEmail = () => handleAuth(false);
-        window.signupWithEmail = () => handleAuth(true);
-
+        // Removed handleAuth, loginWithEmail, signupWithEmail as requested
         async function logout() {
           try {
             if (userProfile && userProfile.uid) {
@@ -2095,8 +1958,12 @@
 
         // Navigation
         function showScreen(screen) {
-          Object.values(screens).forEach(s => s.classList.add('hidden'));
-          screens[screen].classList.remove('hidden');
+          Object.values(screens).forEach(s => {
+            if (s && s.classList) s.classList.add('hidden');
+          });
+          if (screens[screen] && screens[screen].classList) {
+            screens[screen].classList.remove('hidden');
+          }
           currentStep = screen;
         }
 
