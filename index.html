@@ -135,23 +135,6 @@
             z-index: 3;
         }
 
-        /* Ripple Effect */
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.4);
-            transform: scale(0);
-            animation: ripple-animation 0.6s linear;
-            pointer-events: none;
-        }
-
-        @keyframes ripple-animation {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-
         .btn, .icon-btn, .nav-item, .room-card {
             position: relative;
             overflow: hidden;
@@ -188,7 +171,7 @@
             font-weight: 600;
         }
 
-        input {
+        input, textarea {
             width: 100%;
             padding: 14px;
             border: 2px solid var(--border);
@@ -196,11 +179,22 @@
             outline: none;
             transition: all 0.2s;
             font-size: 1rem;
+            background: var(--card);
+            color: var(--text);
         }
 
-        input:focus {
+        input:focus, textarea:focus {
             border-color: var(--primary);
-            background: #f8fafc;
+            background: var(--bg);
+        }
+
+        body.dark-mode input, body.dark-mode textarea {
+            background: #2a2b2c;
+            border-color: #3e4042;
+        }
+
+        body.dark-mode input:focus, body.dark-mode textarea:focus {
+            background: #3a3b3c;
         }
 
         .btn {
@@ -228,6 +222,11 @@
             margin-bottom: 20px;
             font-size: 0.85rem;
             display: none;
+        }
+
+        body.dark-mode .error-box {
+            background: rgba(250, 62, 62, 0.1);
+            border: 1px solid var(--error);
         }
 
         /* Rooms Screen Redesign */
@@ -275,7 +274,7 @@
 
         .search-bar {
             background: var(--bg);
-            border: 1px solid var(--border);
+            border: none;
             border-radius: 15px;
             padding: 10px 15px;
             display: flex;
@@ -476,7 +475,7 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: #f1f5f9;
+            background: var(--bg);
             border: 2px dashed var(--border);
             display: flex;
             align-items: center;
@@ -730,13 +729,14 @@
         }
 
         .modal-box {
-            background: white;
+            background: var(--card);
             padding: 24px;
             border-radius: 20px;
             width: 100%;
             max-width: 320px;
             transform: scale(0.8) translateY(20px);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: var(--text);
         }
 
         .modal.active .modal-box {
@@ -749,7 +749,7 @@
         #splash-screen {
             justify-content: center;
             align-items: center;
-            background: white;
+            background: var(--card);
             z-index: 1000;
         }
         .splash-logo {
@@ -800,7 +800,6 @@
         <div id="splash-screen" class="screen active">
             <img src="https://i.pinimg.com/736x/92/f8/f9/92f8f92a91bf7de670dddb7b1171a250.jpg" alt="Logo" class="splash-logo">
             <div class="splash-text">Nilechat</div>
-            <div class="loading-spinner"></div>
         </div>
 
         <!-- Welcome Screen -->
@@ -866,13 +865,17 @@
             <div class="rooms-list" id="rooms-list">
                 <!-- Rooms injected here -->
             </div>
+            <div id="rooms-loading" style="display: none; flex: 1; align-items: center; justify-content: center; flex-direction: column;">
+                <div class="loading-spinner"></div>
+                <p style="margin-top: 15px; color: var(--text-muted);">جاري تحميل الغرف...</p>
+            </div>
 
             <div class="footer-nav">
-                <div class="nav-item" id="nav-all-rooms">
+                <div class="nav-item active" id="nav-all-rooms">
                     <i data-lucide="globe"></i>
                     <span>العامة</span>
                 </div>
-                <div class="nav-item active" id="nav-notifications">
+                <div class="nav-item" id="nav-notifications">
                     <i data-lucide="message-square"></i>
                     <span>الرسائل</span>
                 </div>
@@ -890,7 +893,7 @@
                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; justify-content: center;">
                     <div id="active-room-img-container" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: none; align-items: center; justify-content: center;">
                         <img id="active-room-img" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                        <div id="active-room-placeholder" class="room-img-placeholder" style="width: 100%; height: 100%; display: none; background: #cbd5e1;">
+                        <div id="active-room-placeholder" class="room-img-placeholder" style="width: 100%; height: 100%; display: none; background: var(--border);">
                             <i data-lucide="users" style="width: 20px; height: 20px; color: white;"></i>
                         </div>
                     </div>
@@ -922,7 +925,7 @@
                 <div style="text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center;">
                     <div id="info-room-img-container" style="width: 100px; height: 100px; border-radius: 20px; overflow: hidden; border: 3px solid var(--primary); margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
                         <img id="info-room-img" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                        <div id="info-room-placeholder" class="room-img-placeholder" style="width: 100%; height: 100%; display: none; background: #cbd5e1; border-radius: 0;">
+                        <div id="info-room-placeholder" class="room-img-placeholder" style="width: 100%; height: 100%; display: none; background: var(--border); border-radius: 0;">
                             <i data-lucide="users" style="width: 50px; height: 50px; color: white;"></i>
                         </div>
                     </div>
@@ -948,7 +951,7 @@
             <div class="modal-box">
                 <h3 style="margin-bottom: 20px; text-align: center;">إنشاء غرفة جديدة</h3>
                 
-                <div class="img-picker" id="room-img-picker" style="background: var(--border); border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center;">
+                <div class="img-picker" id="room-img-picker" style="border: 2px dashed var(--primary);">
                     <img id="room-img-preview" style="display: none; width: 100%; height: 100%; object-fit: cover;">
                     <div id="img-placeholder" style="color: var(--primary); font-size: 0.9rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 5px;">
                         <i data-lucide="users" style="width: 30px; height: 30px;"></i>
@@ -977,7 +980,7 @@
             <div class="modal-box">
                 <h3 style="margin-bottom: 20px; text-align: center;">تعديل الغرفة</h3>
                 
-                <div class="img-picker" id="edit-room-img-picker" style="background: var(--border); border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center;">
+                <div class="img-picker" id="edit-room-img-picker" style="border: 2px dashed var(--primary);">
                     <img id="edit-room-img-preview" style="width: 100%; height: 100%; object-fit: cover;">
                     <div id="edit-img-placeholder" style="color: var(--primary); font-size: 0.9rem; text-align: center; display: none; flex-direction: column; align-items: center; gap: 5px;">
                         <i data-lucide="users" style="width: 30px; height: 30px;"></i>
@@ -1004,7 +1007,7 @@
                     </div>
                 </div>
 
-                <button class="btn" id="save-room-changes">حفظ التغييرات</button>
+                <button class="btn" id="save-room-changes" style="margin-bottom: 10px;">حفظ التغييرات</button>
                 <button class="btn" style="margin-top: 10px; background: #fee2e2; color: #ef4444;" id="delete-room-btn">حذف الغرفة</button>
                 <button class="btn btn-alt" id="close-edit-modal" style="margin-top: 10px;">إلغاء</button>
             </div>
@@ -1075,7 +1078,7 @@
                     </label>
                 </div>
 
-                <button class="btn" id="save-profile">حفظ التغييرات</button>
+                <button class="btn" id="save-profile" style="position: relative; z-index: 10; margin-bottom: 20px;">حفظ التغييرات</button>
                 <button class="btn" style="margin-top: 20px; background: #fee2e2; color: #ef4444;" id="logout-btn">تسجيل الخروج</button>
             </div>
         </div>
@@ -1115,8 +1118,11 @@
             error: document.getElementById('auth-error'),
             roomsList: document.getElementById('rooms-list'),
             chatMsgs: document.getElementById('chat-msgs'),
-            modal: document.getElementById('create-modal')
+            modal: document.getElementById('create-modal'),
+            roomsLoading: document.getElementById('rooms-loading')
         };
+
+        let isRoomsLoaded = false;
 
         const screenOrder = ['splash', 'welcome', 'login', 'rooms', 'chat', 'settings'];
         let currentActiveScreen = 'splash';
@@ -1185,36 +1191,8 @@
             switchScreen('login');
         };
 
-        // Ripple Effect Implementation
-        const createRipple = (event) => {
-            const button = event.currentTarget;
-            const circle = document.createElement("span");
-            const diameter = Math.max(button.clientWidth, button.clientHeight);
-            const radius = diameter / 2;
-
-            const rect = button.getBoundingClientRect();
-
-            circle.style.width = circle.style.height = `${diameter}px`;
-            circle.style.left = `${event.clientX - rect.left - radius}px`;
-            circle.style.top = `${event.clientY - rect.top - radius}px`;
-            circle.classList.add("ripple");
-
-            const ripple = button.getElementsByClassName("ripple")[0];
-            if (ripple) {
-                ripple.remove();
-            }
-
-            button.appendChild(circle);
-        };
-
         const attachRipples = () => {
-            const elements = document.querySelectorAll('.btn, .icon-btn, .nav-item, .room-card, .send-btn, .back-btn');
-            elements.forEach(el => {
-                if (!el.dataset.rippleAttached) {
-                    el.addEventListener('click', createRipple);
-                    el.dataset.rippleAttached = "true";
-                }
-            });
+            // Ripple effect removed
         };
 
         // Auto-expanding textarea
@@ -1228,7 +1206,14 @@
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 document.getElementById('msg-form').dispatchEvent(new Event('submit'));
+                setTimeout(() => msgInput.focus(), 10);
             }
+        });
+
+        // Prevent send button from taking focus
+        document.querySelector('.send-btn').addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            document.getElementById('msg-input').focus();
         });
 
         // Authentication Logic
@@ -1359,7 +1344,7 @@
         let allRoomsData = {};
         let allDMsData = {};
         let userJoinedRooms = {};
-        let currentFilter = 'all'; // 'all', 'my', 'notif', 'joined'
+        let currentFilter = null; // 'all', 'my', 'notif', 'joined'
 
         // Footer Nav Logic
         const navItems = {
@@ -1413,7 +1398,6 @@
 
             if (user) {
                 userSession = user;
-                currentFilter = 'all'; // Ensure public rooms are shown first
                 setActiveNav('all');
                 switchScreen('rooms');
                 syncRooms();
@@ -1457,9 +1441,13 @@
         };
 
         const syncRooms = () => {
+            isRoomsLoaded = false;
+            renderRooms(); // Show initial loading state
+
             const roomsRef = ref(db, 'rooms');
             onValue(roomsRef, (snap) => {
                 allRoomsData = snap.val() || {};
+                isRoomsLoaded = true;
                 updateJoinedBadge();
                 renderRooms();
             });
@@ -1484,6 +1472,15 @@
             const searchTerm = document.getElementById('room-search').value.toLowerCase();
             ui.roomsList.innerHTML = '';
             
+            // Show/Hide loading spinner
+            if (!isRoomsLoaded) {
+                ui.roomsLoading.style.display = 'flex';
+                ui.roomsList.style.display = 'none';
+            } else {
+                ui.roomsLoading.style.display = 'none';
+                ui.roomsList.style.display = 'block';
+            }
+
             // Update active room header if we are in a chat
             if (currentRoomId && userSession) {
                 const headerImgContainer = document.getElementById('active-room-img-container');
@@ -1553,7 +1550,6 @@
                         ${userImgHtml}
                     `;
                     el.onclick = (e) => {
-                        createRipple(e);
                         startDM(otherUid);
                     };
                     ui.roomsList.appendChild(el);
@@ -1599,7 +1595,6 @@
                     ${roomImgHtml}
                 `;
                 el.onclick = (e) => {
-                    createRipple(e);
                     startChat(id, room.name, room.img);
                 };
                 ui.roomsList.appendChild(el);
@@ -1635,7 +1630,6 @@
         navItems.notif.onclick = () => setActiveNav('notif');
 
         document.getElementById('filter-joined-rooms').onclick = (e) => {
-            createRipple(e);
             if (currentFilter === 'joined') {
                 setActiveNav('all');
             } else {
@@ -1737,8 +1731,12 @@
 
             const joinOverlay = document.getElementById('join-overlay');
             const msgForm = document.getElementById('msg-form');
+            const membersBtn = document.getElementById('open-members');
 
             if (!id.startsWith('dm_')) {
+                // Show members button for rooms
+                membersBtn.style.display = 'flex';
+                
                 // Check membership
                 onValue(ref(db, `room_members/${id}/${myUid}`), (snap) => {
                     const isMember = snap.exists();
@@ -1769,6 +1767,7 @@
                 }, { onlyOnce: true });
             } else {
                 // DMs are always accessible
+                membersBtn.style.display = 'none'; // Hide members button in DMs
                 joinOverlay.style.display = 'none';
                 msgForm.style.display = 'flex';
                 headerImg.onclick = null;
@@ -2153,6 +2152,11 @@
 
             input.value = '';
             input.style.height = 'auto'; // Reset height
+            
+            // Keep keyboard open and focus on the input field
+            setTimeout(() => {
+                input.focus();
+            }, 10);
         };
 
     </script>
