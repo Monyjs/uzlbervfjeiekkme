@@ -508,9 +508,58 @@
             align-items: center;
             justify-content: space-between;
             padding: 15px;
-            background: var(--bg);
-            border-radius: 12px;
+            background: var(--card);
+            border-radius: 16px;
             margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* Custom Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 54px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        input:checked + .slider {
+            background-color: #2563eb;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+            background-color: #0f172a;
         }
 
         /* Chat Screen */
@@ -586,21 +635,12 @@
         }
 
         .msg.sent {
-            background: var(--primary);
+            background: linear-gradient(to right, #ff5f6d, #ff0080, #7b2ff7);
             color: white;
             margin-right: 12px;
             margin-left: 0;
-        }
-
-        .msg.sent::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: -8px;
-            width: 12px;
-            height: 12px;
-            background: var(--primary);
-            clip-path: polygon(100% 0, 0 100%, 100% 100%);
+            box-shadow: 0 4px 15px rgba(255, 0, 128, 0.2);
+            border: none;
         }
 
         .msg.received {
@@ -608,17 +648,6 @@
             color: var(--text);
             margin-left: 12px;
             margin-right: 0;
-        }
-
-        .msg.received::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            right: -8px;
-            width: 12px;
-            height: 12px;
-            background: var(--received);
-            clip-path: polygon(0 0, 0% 100%, 100% 100%);
         }
 
         .msg .sender-name {
@@ -823,11 +852,15 @@
                 <button class="icon-btn" id="open-settings"><i data-lucide="settings"></i></button>
             </div>
             
-            <div class="search-container">
-                <div class="search-bar">
+            <div class="search-container" style="display: flex; gap: 10px; align-items: center;">
+                <div class="search-bar" style="flex: 1;">
                     <span style="color: var(--primary)"><i data-lucide="search" style="width: 18px; height: 18px;"></i></span>
                     <input type="text" id="room-search" placeholder="ابحث عن الغرف">
                 </div>
+                <button class="icon-btn" id="filter-joined-rooms" title="الغرف المنضم لها" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; width: 45px; height: 45px; position: relative;">
+                    <i data-lucide="layers"></i>
+                    <span id="joined-count-badge" style="position: absolute; top: -5px; right: -5px; background: var(--primary); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; display: none; border: 2px solid var(--card); font-weight: bold;">0</span>
+                </button>
             </div>
 
             <div class="rooms-list" id="rooms-list">
@@ -837,7 +870,7 @@
             <div class="footer-nav">
                 <div class="nav-item" id="nav-all-rooms">
                     <i data-lucide="globe"></i>
-                    <span>الكل</span>
+                    <span>العامة</span>
                 </div>
                 <div class="nav-item active" id="nav-notifications">
                     <i data-lucide="message-square"></i>
@@ -1010,10 +1043,10 @@
             </header>
             
             <div style="flex: 1; overflow-y: auto; padding: 30px 20px;">
-                <div class="img-picker" id="profile-img-picker" style="width: 120px; height: 120px; margin-bottom: 30px; border: 3px solid var(--primary);">
+                <div class="img-picker" id="profile-img-picker" style="width: 120px; height: 120px; margin-bottom: 30px; border: 3px solid #2563eb; position: relative;">
                     <img id="profile-img-preview" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" style="display: block;">
-                    <div style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid var(--card);">
-                        <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
+                    <div style="position: absolute; bottom: 5px; right: 5px; background: #2563eb; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid var(--card); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <i data-lucide="camera" style="width: 18px; height: 18px;"></i>
                     </div>
                     <input type="file" id="profile-img-input" accept="image/*" style="display: none;">
                 </div>
@@ -1031,12 +1064,15 @@
                     <textarea id="profile-bio" placeholder="اكتب شيئاً عن نفسك..." style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 12px; outline: none; resize: none; font-size: 1rem; height: 100px;"></textarea>
                 </div>
 
+                <h3 style="font-size: 0.9rem; color: #2563eb; margin-bottom: 10px; margin-right: 5px; font-weight: 700;">المظهر</h3>
                 <div class="theme-toggle" style="margin-bottom: 30px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i data-lucide="moon" style="width: 20px; height: 20px; color: var(--primary);"></i>
-                        <span>الوضع المظلم</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-weight: 600; font-size: 1.05rem;">الوضع المظلم</span>
                     </div>
-                    <input type="checkbox" id="dark-mode-toggle" style="width: auto;">
+                    <label class="switch">
+                        <input type="checkbox" id="dark-mode-toggle">
+                        <span class="slider"></span>
+                    </label>
                 </div>
 
                 <button class="btn" id="save-profile">حفظ التغييرات</button>
@@ -1322,7 +1358,8 @@
         // Rooms Logic
         let allRoomsData = {};
         let allDMsData = {};
-        let currentFilter = 'all'; // 'all', 'my', 'notif'
+        let userJoinedRooms = {};
+        let currentFilter = 'all'; // 'all', 'my', 'notif', 'joined'
 
         // Footer Nav Logic
         const navItems = {
@@ -1335,6 +1372,19 @@
             if (currentFilter === type) return;
             Object.values(navItems).forEach(item => item.classList.remove('active'));
             if (navItems[type]) navItems[type].classList.add('active');
+            
+            // Update filter button appearance
+            const filterBtn = document.getElementById('filter-joined-rooms');
+            if (filterBtn) {
+                if (type === 'joined') {
+                    filterBtn.style.background = 'var(--primary)';
+                    filterBtn.style.color = 'white';
+                } else {
+                    filterBtn.style.background = 'var(--bg)';
+                    filterBtn.style.color = 'var(--primary)';
+                }
+            }
+
             currentFilter = type;
             
             // Smooth content transition
@@ -1386,10 +1436,31 @@
             }
         }, 2000);
 
+        const updateJoinedBadge = () => {
+            if (!userSession) return;
+            const myName = userSession.email.split('@')[0];
+            const joinedNotOwned = Object.keys(userJoinedRooms).filter(id => {
+                const room = allRoomsData[id];
+                return room && room.owner !== myName;
+            });
+            
+            const count = joinedNotOwned.length;
+            const badge = document.getElementById('joined-count-badge');
+            if (badge) {
+                if (count > 0) {
+                    badge.innerText = count;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        };
+
         const syncRooms = () => {
             const roomsRef = ref(db, 'rooms');
             onValue(roomsRef, (snap) => {
                 allRoomsData = snap.val() || {};
+                updateJoinedBadge();
                 renderRooms();
             });
 
@@ -1398,6 +1469,13 @@
                 onValue(dmRef, (snap) => {
                     allDMsData = snap.val() || {};
                     if (currentFilter === 'notif') renderRooms();
+                });
+
+                const joinedRef = ref(db, `user_joined_rooms/${userSession.uid}`);
+                onValue(joinedRef, (snap) => {
+                    userJoinedRooms = snap.val() || {};
+                    updateJoinedBadge();
+                    renderRooms();
                 });
             }
         };
@@ -1485,6 +1563,8 @@
             Object.keys(allRoomsData).forEach(id => {
                 const room = allRoomsData[id];
                 const myName = userSession.email.split('@')[0];
+                const isJoined = userJoinedRooms && userJoinedRooms[id];
+                const isOwner = room.owner === myName;
                 
                 // Filtering by name or room code
                 const roomCode = room.code || id.substring(1, 7).toUpperCase();
@@ -1492,7 +1572,9 @@
                                      room.name.toLowerCase().includes(searchTerm) || 
                                      roomCode.toLowerCase().includes(searchTerm);
 
-                if (currentFilter === 'my' && room.owner !== myName) return;
+                if (currentFilter === 'my' && !isOwner) return;
+                if (currentFilter === 'joined' && (!isJoined || isOwner)) return; // Hide owned rooms from "Joined"
+                if (currentFilter === 'all' && (isJoined || isOwner)) return; // Hide joined/owned rooms from "All"
                 if (currentFilter === 'notif') return; // Handled above
                 if (!matchesSearch) return;
 
@@ -1551,6 +1633,15 @@
         navItems.all.onclick = () => setActiveNav('all');
         navItems.my.onclick = () => setActiveNav('my');
         navItems.notif.onclick = () => setActiveNav('notif');
+
+        document.getElementById('filter-joined-rooms').onclick = (e) => {
+            createRipple(e);
+            if (currentFilter === 'joined') {
+                setActiveNav('all');
+            } else {
+                setActiveNav('joined');
+            }
+        };
 
         document.getElementById('open-create-modal').onclick = () => showModal('create-modal');
         document.getElementById('close-modal').onclick = () => hideModal('create-modal');
@@ -1652,6 +1743,11 @@
                 onValue(ref(db, `room_members/${id}/${myUid}`), (snap) => {
                     const isMember = snap.exists();
                     if (isMember || isOwner) {
+                        // Auto-fix joined status if missing
+                        if (isMember && (!userJoinedRooms || !userJoinedRooms[id])) {
+                            set(ref(db, `user_joined_rooms/${myUid}/${id}`), true);
+                        }
+
                         joinOverlay.style.display = 'none';
                         msgForm.style.display = 'flex';
                         
@@ -1695,6 +1791,9 @@
                 ts: serverTimestamp()
             });
 
+            // Track joined rooms for user
+            await set(ref(db, `user_joined_rooms/${myUid}/${roomId}`), true);
+
             // Increment count
             const roomRef = ref(db, `rooms/${roomId}`);
             onValue(roomRef, async (snap) => {
@@ -1719,6 +1818,9 @@
 
             // Remove from members
             await remove(ref(db, `room_members/${roomId}/${myUid}`));
+
+            // Remove from joined rooms tracker
+            await remove(ref(db, `user_joined_rooms/${myUid}/${roomId}`));
 
             // Decrement count
             const roomRef = ref(db, `rooms/${roomId}`);
