@@ -40,33 +40,50 @@
             margin: 0;
             padding: 0;
             font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+
+        *::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
             height: 100vh;
+            width: 100vw;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            touch-action: none;
+            overscroll-behavior: none;
+            position: fixed; /* Prevent any scrolling on body */
         }
 
         .app-container {
             width: 100%;
             max-width: 450px;
-            height: 100vh;
+            height: 100%;
             background: var(--card);
             display: flex;
             flex-direction: column;
             position: relative;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none; /* Only allow touch inside scrollable areas */
         }
 
         @media (min-width: 640px) {
             .app-container {
-                height: 85vh;
+                height: 90vh;
                 border-radius: 24px;
-                overflow: hidden;
             }
         }
 
@@ -82,34 +99,40 @@
             background: var(--card);
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
             opacity: 0;
+            z-index: 1;
+            will-change: transform, opacity;
         }
 
         .screen.active {
             display: flex;
-            z-index: 1;
             opacity: 1;
+            z-index: 2;
         }
 
         .screen.slide-out-left {
             transform: translateX(-100%);
             opacity: 0;
+            z-index: 1;
         }
 
         .screen.slide-out-right {
             transform: translateX(100%);
             opacity: 0;
+            z-index: 1;
         }
 
         .screen.slide-in-right {
             display: flex;
             transform: translateX(100%);
             opacity: 0;
+            z-index: 3;
         }
 
         .screen.slide-in-left {
             display: flex;
             transform: translateX(-100%);
             opacity: 0;
+            z-index: 3;
         }
 
         /* Ripple Effect */
@@ -292,6 +315,24 @@
             border-radius: 50%;
             object-fit: cover;
             background: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .room-img-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .room-img-placeholder i {
+            width: 30px;
+            height: 30px;
         }
 
         .user-item {
@@ -376,6 +417,17 @@
             overflow-y: auto;
             padding: 20px;
             transition: opacity 0.3s ease, transform 0.3s ease;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        #settings-screen {
+            overflow-y: auto;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 40px;
+            scrollbar-width: none;
         }
 
         /* Footer Navigation */
@@ -473,6 +525,9 @@
             flex-direction: column;
             gap: 16px;
             scroll-behavior: smooth;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
 
         .msg {
@@ -674,15 +729,34 @@
             border-radius: 50%;
             object-fit: cover;
             margin-bottom: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0, 71, 255, 0.2);
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         .splash-text {
             font-size: 2.5rem;
             font-weight: 800;
             color: var(--primary-dark);
             opacity: 0;
-            animation: fadeInText 1.5s ease forwards;
-            animation-delay: 0.5s;
+            animation: fadeInText 1s ease forwards;
+            animation-delay: 0.3s;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 71, 255, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            margin-top: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         @keyframes fadeInText {
             from { opacity: 0; transform: translateY(10px); }
@@ -697,6 +771,7 @@
         <div id="splash-screen" class="screen active">
             <img src="https://i.pinimg.com/736x/92/f8/f9/92f8f92a91bf7de670dddb7b1171a250.jpg" alt="Logo" class="splash-logo">
             <div class="splash-text">Nilechat</div>
+            <div class="loading-spinner"></div>
         </div>
 
         <!-- Welcome Screen -->
@@ -780,7 +855,12 @@
             <header style="display: flex; align-items: center; gap: 10px; padding: 10px 20px;">
                 <button class="back-btn" id="exit-chat"><i data-lucide="arrow-right"></i></button>
                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; justify-content: center;">
-                    <img id="active-room-img" src="" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: none;">
+                    <div id="active-room-img-container" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: none; align-items: center; justify-content: center;">
+                        <img id="active-room-img" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <div id="active-room-placeholder" class="room-img-placeholder" style="width: 100%; height: 100%; display: none; background: #cbd5e1;">
+                            <i data-lucide="users" style="width: 20px; height: 20px; color: white;"></i>
+                        </div>
+                    </div>
                     <h2 id="active-room-title" style="margin: 0; font-size: 1.2rem;">اسم الغرفة</h2>
                 </div>
                 <button class="icon-btn" id="open-members"><i data-lucide="users"></i></button>
@@ -806,8 +886,13 @@
         <!-- Room Info Modal (For non-owners) -->
         <div class="modal" id="room-info-modal">
             <div class="modal-box">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <img id="info-room-img" src="" style="width: 100px; height: 100px; border-radius: 20px; object-fit: cover; border: 3px solid var(--primary); margin-bottom: 15px;">
+                <div style="text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center;">
+                    <div id="info-room-img-container" style="width: 100px; height: 100px; border-radius: 20px; overflow: hidden; border: 3px solid var(--primary); margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
+                        <img id="info-room-img" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <div id="info-room-placeholder" class="room-img-placeholder" style="width: 100%; height: 100%; display: none; background: #cbd5e1; border-radius: 0;">
+                            <i data-lucide="users" style="width: 50px; height: 50px; color: white;"></i>
+                        </div>
+                    </div>
                     <h3 id="info-room-name" style="margin: 0; font-size: 1.4rem;">اسم الغرفة</h3>
                     <p id="info-room-owner" style="color: var(--text-muted); margin-top: 5px; font-size: 0.9rem;">المالك: ...</p>
                 </div>
@@ -832,7 +917,10 @@
                 
                 <div class="img-picker" id="room-img-picker" style="background: var(--border); border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center;">
                     <img id="room-img-preview" style="display: none; width: 100%; height: 100%; object-fit: cover;">
-                    <div id="img-placeholder" style="color: var(--primary); font-size: 0.9rem; text-align: center;">اضغط لإضافة صورة</div>
+                    <div id="img-placeholder" style="color: var(--primary); font-size: 0.9rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                        <i data-lucide="users" style="width: 30px; height: 30px;"></i>
+                        <span>اضغط لإضافة صورة</span>
+                    </div>
                     <input type="file" id="room-img-input" accept="image/*" style="display: none;">
                 </div>
 
@@ -858,7 +946,10 @@
                 
                 <div class="img-picker" id="edit-room-img-picker" style="background: var(--border); border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center;">
                     <img id="edit-room-img-preview" style="width: 100%; height: 100%; object-fit: cover;">
-                    <div id="edit-img-placeholder" style="color: var(--primary); font-size: 0.9rem; text-align: center; display: none;">اضغط لتغيير الصورة</div>
+                    <div id="edit-img-placeholder" style="color: var(--primary); font-size: 0.9rem; text-align: center; display: none; flex-direction: column; align-items: center; gap: 5px;">
+                        <i data-lucide="users" style="width: 30px; height: 30px;"></i>
+                        <span>اضغط لتغيير الصورة</span>
+                    </div>
                     <input type="file" id="edit-room-img-input" accept="image/*" style="display: none;">
                 </div>
 
@@ -1004,28 +1095,24 @@
             const oldScreen = ui[currentActiveScreen];
             const newScreen = ui[screenId];
 
-            // Reset classes
-            [ui.splash, ui.welcome, ui.login, ui.rooms, ui.chat, ui.settings].forEach(s => {
-                if (s) s.classList.remove('active', 'slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
-            });
-
-            if (direction === 'forward') {
-                oldScreen.classList.add('active', 'slide-out-left');
-                newScreen.classList.add('slide-in-right');
-            } else {
-                oldScreen.classList.add('active', 'slide-out-right');
-                newScreen.classList.add('slide-in-left');
-            }
+            // Prepare new screen
+            newScreen.classList.remove('active', 'slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
+            newScreen.classList.add(direction === 'forward' ? 'slide-in-right' : 'slide-in-left');
 
             // Trigger reflow
             newScreen.offsetWidth;
 
+            // Start transition
+            oldScreen.classList.add(direction === 'forward' ? 'slide-out-left' : 'slide-out-right');
             newScreen.classList.add('active');
             newScreen.classList.remove('slide-in-left', 'slide-in-right');
 
+            const prevScreen = currentActiveScreen;
+            currentActiveScreen = screenId;
+
             setTimeout(() => {
+                // Cleanup old screen
                 oldScreen.classList.remove('active', 'slide-out-left', 'slide-out-right');
-                currentActiveScreen = screenId;
                 lucide.createIcons();
             }, 400);
         };
@@ -1232,10 +1319,43 @@
             darkModeToggle.checked = true;
         }
 
+        // Rooms Logic
+        let allRoomsData = {};
+        let allDMsData = {};
+        let currentFilter = 'all'; // 'all', 'my', 'notif'
+
+        // Footer Nav Logic
+        const navItems = {
+            all: document.getElementById('nav-all-rooms'),
+            my: document.getElementById('nav-my-rooms'),
+            notif: document.getElementById('nav-notifications')
+        };
+
+        const setActiveNav = (type) => {
+            if (currentFilter === type) return;
+            Object.values(navItems).forEach(item => item.classList.remove('active'));
+            if (navItems[type]) navItems[type].classList.add('active');
+            currentFilter = type;
+            
+            // Smooth content transition
+            if (ui.roomsList) {
+                ui.roomsList.style.opacity = '0';
+                ui.roomsList.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    renderRooms();
+                    ui.roomsList.style.opacity = '1';
+                    ui.roomsList.style.transform = 'translateY(0)';
+                }, 150);
+            }
+        };
+
         let isSplashDone = false;
+        let authChecked = false;
         let pendingUser = null;
 
         const handleAuthStateChange = (user) => {
+            authChecked = true;
             if (!isSplashDone) {
                 pendingUser = user;
                 return;
@@ -1243,6 +1363,8 @@
 
             if (user) {
                 userSession = user;
+                currentFilter = 'all'; // Ensure public rooms are shown first
+                setActiveNav('all');
                 switchScreen('rooms');
                 syncRooms();
             } else {
@@ -1256,16 +1378,13 @@
         attachRipples();
         lucide.createIcons();
 
-        // Splash Timer
+        // Splash Timer - Wait at least 2 seconds for branding, but also wait for auth
         setTimeout(() => {
             isSplashDone = true;
-            handleAuthStateChange(pendingUser);
-        }, 3500);
-
-        // Rooms Logic
-        let allRoomsData = {};
-        let allDMsData = {};
-        let currentFilter = 'all'; // 'all', 'my', 'notif'
+            if (authChecked) {
+                handleAuthStateChange(pendingUser);
+            }
+        }, 2000);
 
         const syncRooms = () => {
             const roomsRef = ref(db, 'rooms');
@@ -1289,28 +1408,37 @@
             
             // Update active room header if we are in a chat
             if (currentRoomId && userSession) {
+                const headerImgContainer = document.getElementById('active-room-img-container');
+                const headerImg = document.getElementById('active-room-img');
+                const headerPlaceholder = document.getElementById('active-room-placeholder');
+                const headerTitle = document.getElementById('active-room-title');
+
                 if (allRoomsData[currentRoomId]) {
                     const room = allRoomsData[currentRoomId];
-                    document.getElementById('active-room-title').innerText = room.name;
-                    const headerImg = document.getElementById('active-room-img');
+                    headerTitle.innerText = room.name;
                     if (room.img) {
                         headerImg.src = room.img;
                         headerImg.style.display = 'block';
+                        headerPlaceholder.style.display = 'none';
                     } else {
                         headerImg.style.display = 'none';
+                        headerPlaceholder.style.display = 'flex';
                     }
+                    headerImgContainer.style.display = 'flex';
                 } else if (currentRoomId.startsWith('dm_')) {
                     const parts = currentRoomId.split('_');
                     const otherUid = parts[1] === userSession.uid ? parts[2] : parts[1];
                     const otherUser = usersData[otherUid] || { username: 'مستخدم' };
-                    document.getElementById('active-room-title').innerText = otherUser.username;
-                    const headerImg = document.getElementById('active-room-img');
+                    headerTitle.innerText = otherUser.username;
                     if (otherUser.img) {
                         headerImg.src = otherUser.img;
                         headerImg.style.display = 'block';
+                        headerPlaceholder.style.display = 'none';
                     } else {
                         headerImg.style.display = 'none';
+                        headerPlaceholder.style.display = 'flex';
                     }
+                    headerImgContainer.style.display = 'flex';
                 }
             }
 
@@ -1322,7 +1450,7 @@
 
                 dmList.forEach(dm => {
                     const otherUid = dm.uid;
-                    const otherUser = usersData[otherUid] || { username: 'مستخدم', img: 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' };
+                    const otherUser = usersData[otherUid] || { username: 'مستخدم', img: null };
                     
                     if (searchTerm && !otherUser.username.toLowerCase().includes(searchTerm)) return;
 
@@ -1332,6 +1460,10 @@
                     const lastMsg = dm.lastMessage || 'لا توجد رسائل بعد';
                     const lastMsgTime = dm.lastMessageTs ? new Date(dm.lastMessageTs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 
+                    const userImgHtml = otherUser.img 
+                        ? `<img src="${otherUser.img}" class="room-img" alt="User">`
+                        : `<div class="room-img-placeholder"><i data-lucide="user"></i></div>`;
+
                     el.innerHTML = `
                         <div class="room-stats">
                             <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">${lastMsgTime}</div>
@@ -1340,7 +1472,7 @@
                             <div class="room-name">${otherUser.username}</div>
                             <div class="room-tag" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${lastMsg}</div>
                         </div>
-                        <img src="${otherUser.img}" class="room-img" alt="User">
+                        ${userImgHtml}
                     `;
                     el.onclick = (e) => {
                         createRipple(e);
@@ -1367,7 +1499,9 @@
                 const el = document.createElement('div');
                 el.className = 'room-card';
                 
-                const roomImg = room.img || 'https://picsum.photos/seed/' + id + '/200';
+                const roomImgHtml = room.img 
+                    ? `<img src="${room.img}" class="room-img" alt="Room">`
+                    : `<div class="room-img-placeholder"><i data-lucide="users"></i></div>`;
                 const limit = room.limit || 500;
                 const membersCount = room.membersCount || 0;
                 
@@ -1380,25 +1514,19 @@
                         <div class="room-name">${room.name}</div>
                         <div class="room-tag">كود: ${roomCode}</div>
                     </div>
-                    <img src="${roomImg}" class="room-img" alt="Room">
+                    ${roomImgHtml}
                 `;
                 el.onclick = (e) => {
                     createRipple(e);
-                    startChat(id, room.name, roomImg);
+                    startChat(id, room.name, room.img);
                 };
                 ui.roomsList.appendChild(el);
             });
+            lucide.createIcons();
             attachRipples();
         };
 
         document.getElementById('room-search').oninput = renderRooms;
-
-        // Footer Nav Logic
-        const navItems = {
-            all: document.getElementById('nav-all-rooms'),
-            my: document.getElementById('nav-my-rooms'),
-            notif: document.getElementById('nav-notifications')
-        };
 
         const showModal = (modalId) => {
             const modal = document.getElementById(modalId);
@@ -1418,23 +1546,6 @@
                     modal.style.display = 'none';
                 }
             }, 300);
-        };
-
-        const setActiveNav = (type) => {
-            if (currentFilter === type) return;
-            Object.values(navItems).forEach(item => item.classList.remove('active'));
-            navItems[type].classList.add('active');
-            currentFilter = type;
-            
-            // Smooth content transition
-            ui.roomsList.style.opacity = '0';
-            ui.roomsList.style.transform = 'translateY(10px)';
-            
-            setTimeout(() => {
-                renderRooms();
-                ui.roomsList.style.opacity = '1';
-                ui.roomsList.style.transform = 'translateY(0)';
-            }, 150);
         };
 
         navItems.all.onclick = () => setActiveNav('all');
@@ -1499,26 +1610,39 @@
             document.getElementById('new-room-name').value = '';
             document.getElementById('new-room-limit').value = '500';
             imgPreview.style.display = 'none';
-            imgPlaceholder.style.display = 'block';
+            imgPlaceholder.style.display = 'flex';
             selectedRoomImg = null;
             ui.modal.style.display = 'none';
         };
 
         // Chat Logic
         const startChat = (id, name, img) => {
+            // Switch screen immediately for responsiveness
+            switchScreen('chat');
+            
+            // Clear previous messages immediately to prevent jitter
+            ui.chatMsgs.innerHTML = '';
+            lastMessageIds.clear();
+
             currentRoomId = id;
             const room = allRoomsData[id];
             const myUid = userSession ? userSession.uid : null;
             const isOwner = room && room.ownerUid === myUid;
 
             document.getElementById('active-room-title').innerText = name;
+            const headerImgContainer = document.getElementById('active-room-img-container');
             const headerImg = document.getElementById('active-room-img');
+            const headerPlaceholder = document.getElementById('active-room-placeholder');
+
             if (img) {
                 headerImg.src = img;
                 headerImg.style.display = 'block';
+                headerPlaceholder.style.display = 'none';
             } else {
                 headerImg.style.display = 'none';
+                headerPlaceholder.style.display = 'flex';
             }
+            headerImgContainer.style.display = 'flex';
 
             const joinOverlay = document.getElementById('join-overlay');
             const msgForm = document.getElementById('msg-form');
@@ -1557,7 +1681,6 @@
                 document.getElementById('active-room-title').style.cursor = 'default';
             }
 
-            switchScreen('chat');
             syncMessages(id);
         };
 
@@ -1617,7 +1740,18 @@
             const room = allRoomsData[id];
             if (!room) return;
 
-            document.getElementById('info-room-img').src = room.img || '';
+            const infoImg = document.getElementById('info-room-img');
+            const infoPlaceholder = document.getElementById('info-room-placeholder');
+
+            if (room.img) {
+                infoImg.src = room.img;
+                infoImg.style.display = 'block';
+                infoPlaceholder.style.display = 'none';
+            } else {
+                infoImg.style.display = 'none';
+                infoPlaceholder.style.display = 'flex';
+            }
+
             document.getElementById('info-room-name').innerText = room.name;
             document.getElementById('info-room-owner').innerText = `المالك: ${room.owner}`;
             document.getElementById('info-room-code').innerText = room.code || '000000';
@@ -1628,6 +1762,7 @@
             };
 
             showModal('room-info-modal');
+            lucide.createIcons();
         };
 
         document.getElementById('join-room-btn').onclick = joinRoom;
@@ -1724,8 +1859,9 @@
                 editImgPlaceholder.style.display = 'none';
             } else {
                 editImgPreview.style.display = 'none';
-                editImgPlaceholder.style.display = 'block';
+                editImgPlaceholder.style.display = 'flex';
             }
+            lucide.createIcons();
             
             selectedEditRoomImg = null;
             showModal('edit-room-modal');
@@ -1862,9 +1998,9 @@
 
                         ui.chatMsgs.appendChild(div);
                         lastMessageIds.add(id);
-                        ui.chatMsgs.scrollTop = ui.chatMsgs.scrollHeight;
                     }
                 });
+                ui.chatMsgs.scrollTop = ui.chatMsgs.scrollHeight;
             });
         };
 
