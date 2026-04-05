@@ -441,6 +441,22 @@
             width: 100%;
         }
 
+        .unread-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 5px;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+        }
+
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -852,9 +868,13 @@
             </div>
             
             <div class="search-container" style="display: flex; gap: 10px; align-items: center;">
-                <div class="search-bar" style="flex: 1;">
+                <div class="search-bar" id="room-search-bar" style="flex: 1;">
                     <span style="color: var(--primary)"><i data-lucide="search" style="width: 18px; height: 18px;"></i></span>
                     <input type="text" id="room-search" placeholder="ابحث عن الغرف">
+                </div>
+                <div class="search-bar" id="user-search-bar" style="flex: 1; display: none; background: rgba(0, 71, 255, 0.05); border: 1px solid var(--primary);">
+                    <span style="color: var(--primary)"><i data-lucide="search" style="width: 18px; height: 18px;"></i></span>
+                    <input type="text" id="user-search" placeholder="ابحث عن مستخدم بالاسم...">
                 </div>
                 <button class="icon-btn" id="filter-joined-rooms" title="الغرف المنضم لها" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; width: 45px; height: 45px; position: relative;">
                     <i data-lucide="layers"></i>
@@ -875,9 +895,10 @@
                     <i data-lucide="globe"></i>
                     <span>العامة</span>
                 </div>
-                <div class="nav-item" id="nav-notifications">
+                <div class="nav-item" id="nav-notifications" style="position: relative;">
                     <i data-lucide="message-square"></i>
                     <span>الرسائل</span>
+                    <span id="notif-count-badge" style="position: absolute; top: 5px; right: 25%; background: #ef4444; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; display: none; border: 2px solid var(--nav-bg); font-weight: bold; z-index: 5;">0</span>
                 </div>
                 <div class="nav-item" id="nav-my-rooms">
                     <i data-lucide="home"></i>
@@ -1087,7 +1108,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, serverTimestamp, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, serverTimestamp, update, remove, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // Your Firebase Configuration
         const firebaseConfig = {
@@ -1360,6 +1381,19 @@
             
             // Update filter button appearance
             const filterBtn = document.getElementById('filter-joined-rooms');
+            const roomSearchBar = document.getElementById('room-search-bar');
+            const userSearchBar = document.getElementById('user-search-bar');
+
+            if (type === 'notif') {
+                if (roomSearchBar) roomSearchBar.style.display = 'none';
+                if (userSearchBar) userSearchBar.style.display = 'flex';
+                if (filterBtn) filterBtn.style.display = 'none';
+            } else {
+                if (roomSearchBar) roomSearchBar.style.display = 'flex';
+                if (userSearchBar) userSearchBar.style.display = 'none';
+                if (filterBtn) filterBtn.style.display = 'flex';
+            }
+
             if (filterBtn) {
                 if (type === 'joined') {
                     filterBtn.style.background = 'var(--primary)';
@@ -1391,6 +1425,14 @@
 
         const handleAuthStateChange = (user) => {
             authChecked = true;
+            
+            // If user is already logged in, skip splash screen faster
+            if (user && !isSplashDone) {
+                isSplashDone = true;
+                // Clear the splash timer if it exists
+                if (window.splashTimer) clearTimeout(window.splashTimer);
+            }
+
             if (!isSplashDone) {
                 pendingUser = user;
                 return;
@@ -1413,10 +1455,12 @@
         lucide.createIcons();
 
         // Splash Timer - Wait at least 2 seconds for branding, but also wait for auth
-        setTimeout(() => {
-            isSplashDone = true;
-            if (authChecked) {
-                handleAuthStateChange(pendingUser);
+        window.splashTimer = setTimeout(() => {
+            if (!isSplashDone) {
+                isSplashDone = true;
+                if (authChecked) {
+                    handleAuthStateChange(pendingUser);
+                }
             }
         }, 2000);
 
@@ -1456,6 +1500,7 @@
                 const dmRef = ref(db, `user_dms/${userSession.uid}`);
                 onValue(dmRef, (snap) => {
                     allDMsData = snap.val() || {};
+                    updateGlobalNotifBadge();
                     if (currentFilter === 'notif') renderRooms();
                 });
 
@@ -1469,7 +1514,10 @@
         };
 
         const renderRooms = () => {
-            const searchTerm = document.getElementById('room-search').value.toLowerCase();
+            const roomSearchTerm = document.getElementById('room-search').value.toLowerCase();
+            const userSearchTerm = document.getElementById('user-search').value.toLowerCase();
+            const searchTerm = currentFilter === 'notif' ? userSearchTerm : roomSearchTerm;
+            
             ui.roomsList.innerHTML = '';
             
             // Show/Hide loading spinner
@@ -1523,12 +1571,15 @@
                 // Sort by last message timestamp
                 dmList.sort((a, b) => (b.lastMessageTs || 0) - (a.lastMessageTs || 0));
 
+                const shownUids = new Set();
+
                 dmList.forEach(dm => {
                     const otherUid = dm.uid;
                     const otherUser = usersData[otherUid] || { username: 'مستخدم', img: null };
                     
                     if (searchTerm && !otherUser.username.toLowerCase().includes(searchTerm)) return;
 
+                    shownUids.add(otherUid);
                     const el = document.createElement('div');
                     el.className = 'room-card';
                     
@@ -1539,9 +1590,13 @@
                         ? `<img src="${otherUser.img}" class="room-img" alt="User">`
                         : `<div class="room-img-placeholder"><i data-lucide="user"></i></div>`;
 
+                    const unreadCount = dm.unreadCount || 0;
+                    const unreadHtml = unreadCount > 0 ? `<div class="unread-badge">${unreadCount}</div>` : '';
+
                     el.innerHTML = `
                         <div class="room-stats">
                             <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">${lastMsgTime}</div>
+                            ${unreadHtml}
                         </div>
                         <div class="room-details">
                             <div class="room-name">${otherUser.username}</div>
@@ -1554,6 +1609,36 @@
                     };
                     ui.roomsList.appendChild(el);
                 });
+
+                // If searching, show other users not in DMs
+                if (searchTerm) {
+                    Object.keys(usersData).forEach(uid => {
+                        if (uid === userSession.uid || shownUids.has(uid)) return;
+                        const user = usersData[uid];
+                        if (user.username.toLowerCase().includes(searchTerm)) {
+                            const el = document.createElement('div');
+                            el.className = 'room-card';
+                            el.style.border = '1px dashed var(--primary)';
+                            
+                            const userImgHtml = user.img 
+                                ? `<img src="${user.img}" class="room-img" alt="User">`
+                                : `<div class="room-img-placeholder"><i data-lucide="user"></i></div>`;
+
+                            el.innerHTML = `
+                                <div class="room-stats">
+                                    <div class="status-badge" style="background: var(--primary); color: white;">جديد</div>
+                                </div>
+                                <div class="room-details">
+                                    <div class="room-name">${user.username}</div>
+                                    <div class="room-tag">بدء محادثة جديدة</div>
+                                </div>
+                                ${userImgHtml}
+                            `;
+                            el.onclick = () => startDM(uid);
+                            ui.roomsList.appendChild(el);
+                        }
+                    });
+                }
             }
 
             Object.keys(allRoomsData).forEach(id => {
@@ -1583,10 +1668,25 @@
                 const limit = room.limit || 500;
                 const membersCount = room.membersCount || 0;
                 
+                const unreadCount = (userJoinedRooms && userJoinedRooms[id] && userJoinedRooms[id].unreadCount) || 0;
+                const lastSeenTs = (userJoinedRooms && userJoinedRooms[id] && userJoinedRooms[id].lastSeenTs) || 0;
+                const lastMessageTs = room.lastMessageTs || 0;
+                
+                // If unreadCount is not explicitly tracked for rooms, we can use timestamp comparison
+                // But since we added unreadCount: increment(1) logic for DMs, let's see if we can do it for rooms too.
+                // For now, let's use the unreadCount if it exists, or timestamp comparison.
+                let showUnread = unreadCount > 0;
+                if (!showUnread && lastMessageTs > lastSeenTs && lastSeenTs !== 0) {
+                    showUnread = true;
+                }
+                
+                const unreadHtml = showUnread ? `<div class="unread-badge">${unreadCount > 0 ? unreadCount : 'جديد'}</div>` : '';
+
                 el.innerHTML = `
                     <div class="room-stats">
                         <div class="status-badge">متصل</div>
                         <div class="participant-count">${membersCount}/${limit}</div>
+                        ${unreadHtml}
                     </div>
                     <div class="room-details">
                         <div class="room-name">${room.name}</div>
@@ -1601,9 +1701,35 @@
             });
             lucide.createIcons();
             attachRipples();
+            updateGlobalNotifBadge();
+        };
+
+        const updateGlobalNotifBadge = () => {
+            if (!userSession) return;
+            
+            let totalUnread = 0;
+            
+            // Count DM unreads
+            Object.values(allDMsData).forEach(dm => {
+                totalUnread += (dm.unreadCount || 0);
+            });
+            
+            // Count Room unreads (optional, depending on if we want room unreads on the messages tab)
+            // Usually "Messages" tab in this app seems to be for DMs (currentFilter === 'notif')
+            
+            const badge = document.getElementById('notif-count-badge');
+            if (badge) {
+                if (totalUnread > 0) {
+                    badge.innerText = totalUnread > 99 ? '99+' : totalUnread;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
         };
 
         document.getElementById('room-search').oninput = renderRooms;
+        document.getElementById('user-search').oninput = renderRooms;
 
         const showModal = (modalId) => {
             const modal = document.getElementById(modalId);
@@ -1710,6 +1836,15 @@
             lastMessageIds.clear();
 
             currentRoomId = id;
+            
+            // Update last seen timestamp and clear unread count
+            if (userSession) {
+                update(ref(db, `user_joined_rooms/${userSession.uid}/${id}`), {
+                    lastSeenTs: serverTimestamp(),
+                    unreadCount: 0
+                });
+            }
+
             const room = allRoomsData[id];
             const myUid = userSession ? userSession.uid : null;
             const isOwner = room && room.ownerUid === myUid;
@@ -1875,6 +2010,12 @@
             const myUid = userSession.uid;
             const dmId = myUid < otherUid ? `dm_${myUid}_${otherUid}` : `dm_${otherUid}_${myUid}`;
             
+            // Update last seen for DM and clear unread count
+            update(ref(db, `user_dms/${myUid}/${otherUid}`), {
+                lastSeenTs: serverTimestamp(),
+                unreadCount: 0
+            });
+
             const otherUser = usersData[otherUid] || { username: 'مستخدم' };
             
             // Register DM for both users without overwriting metadata
@@ -2122,6 +2263,14 @@
                     alert('عذراً، إرسال الرسائل معطل في هذه الغرفة حالياً.');
                     return;
                 }
+                // Update room's last message timestamp and sender's last seen
+                update(ref(db, `rooms/${currentRoomId}`), {
+                    lastMessageTs: serverTimestamp()
+                });
+                update(ref(db, `user_joined_rooms/${myUid}/${currentRoomId}`), {
+                    lastSeenTs: serverTimestamp(),
+                    unreadCount: 0
+                });
             }
 
             const mRef = ref(db, `messages/${currentRoomId}`);
@@ -2147,7 +2296,10 @@
                     senderUid: myUid
                 };
                 update(ref(db, `user_dms/${myUid}/${otherUid}`), dmUpdate);
-                update(ref(db, `user_dms/${otherUid}/${myUid}`), dmUpdate);
+                update(ref(db, `user_dms/${otherUid}/${myUid}`), {
+                    ...dmUpdate,
+                    unreadCount: increment(1)
+                });
             }
 
             input.value = '';
