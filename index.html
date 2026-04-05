@@ -235,16 +235,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--card);
+            background: var(--primary);
             position: sticky;
             top: 0;
             z-index: 10;
+            color: white;
         }
 
         .rooms-header h1 {
             font-size: 1.8rem;
             font-weight: 800;
-            color: var(--text);
+            color: white;
             margin: 0;
         }
 
@@ -252,7 +253,7 @@
             background: none;
             border: none;
             font-size: 1.5rem;
-            color: var(--primary);
+            color: white;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -264,7 +265,7 @@
         }
 
         .icon-btn:hover {
-            background: rgba(0, 71, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .search-container {
@@ -812,8 +813,9 @@
             background: var(--card);
             padding: 15px;
             border-radius: 20px;
-            margin-bottom: 20px;
+            margin: 10px 20px 20px 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
         }
 
         .post-input-card textarea {
@@ -823,8 +825,15 @@
             padding: 12px;
             font-size: 0.95rem;
             resize: none;
+            height: 45px;
+            margin-bottom: 0;
+            transition: 0.3s;
+        }
+
+        .post-input-card textarea:focus {
             height: 80px;
             margin-bottom: 10px;
+            border-color: var(--primary);
         }
 
         .post-card {
@@ -834,12 +843,11 @@
             margin-bottom: 18px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.04);
             border: 1px solid var(--border);
-            animation: fadeIn 0.4s ease-out;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .post-header {
@@ -847,6 +855,59 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 12px;
+            position: relative;
+        }
+
+        .post-menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .post-menu-btn:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .post-dropdown {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+            min-width: 120px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .post-dropdown.active {
+            display: block;
+        }
+
+        .post-dropdown-item {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            color: #ef4444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            font-weight: 600;
+        }
+
+        .post-dropdown-item:hover {
+            background: #fee2e2;
         }
 
         .post-user-img {
@@ -908,9 +969,56 @@
             color: #ef4444;
         }
 
-        .post-action-btn i {
-            width: 18px;
-            height: 18px;
+        .post-action-btn.liked i {
+            fill: #ef4444;
+        }
+
+        /* Comments Styles */
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            background: var(--bg);
+            padding: 10px;
+            border-radius: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .comment-user-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-user-name {
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+
+        .comment-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .comment-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
 
         .nile-btn {
@@ -928,6 +1036,53 @@
         .nile-btn:hover {
             background: var(--primary-dark);
             transform: translateY(-2px);
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--card);
+            color: var(--text);
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 0.9rem;
+            animation: toastIn 0.3s ease forwards, toastOut 0.3s ease forwards 2.7s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .toast.error {
+            border-right: 4px solid #ef4444;
+        }
+
+        .toast.success {
+            border-right: 4px solid #10b981;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
         }
 
         @keyframes spin {
@@ -994,14 +1149,14 @@
         <div id="feed-screen" class="screen">
             <div class="rooms-header">
                 <div style="width: 40px"></div>
-                <h1 style="color: var(--primary);">ساحة النيل</h1>
+                <h1>Nilechat</h1>
                 <button class="icon-btn" id="feed-open-settings"><i data-lucide="settings"></i></button>
             </div>
 
             <div class="feed-container" id="feed-posts-list">
                 <div class="post-input-card">
                     <textarea id="post-text-input" placeholder="ماذا يدور في ذهنك يا ابن النيل؟"></textarea>
-                    <button class="nile-btn" id="publish-post-btn">نشر في النيل</button>
+                    <button class="nile-btn" id="publish-post-btn" style="display: none;">نشر في النيل</button>
                 </div>
                 
                 <div id="posts-loading" style="text-align: center; padding: 20px;">
@@ -1237,6 +1392,47 @@
             </div>
         </div>
 
+        <!-- Comments Modal -->
+        <div class="modal" id="comments-modal">
+            <div class="modal-box" style="max-width: 400px; max-height: 85vh; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                    <h3 style="margin: 0;">التعليقات</h3>
+                    <div id="comments-modal-stats" style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 10px;">
+                        <!-- Stats injected here -->
+                    </div>
+                </div>
+                
+                <div id="comments-container" class="comments-list">
+                    <!-- Comments injected here -->
+                </div>
+
+                <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+                    <textarea id="comment-input" placeholder="اكتب تعليقك هنا..." style="height: 60px; font-size: 0.9rem; margin-bottom: 10px;"></textarea>
+                    <button class="nile-btn" id="submit-comment-btn">إضافة تعليق</button>
+                </div>
+                
+                <button class="btn btn-alt" id="close-comments-modal" style="margin-top: 10px;">إغلاق</button>
+            </div>
+        </div>
+
+        <!-- Confirm Delete Modal -->
+        <div class="modal" id="confirm-modal">
+            <div class="modal-box" style="max-width: 320px; text-align: center;">
+                <div style="background: #fee2e2; color: #ef4444; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <i data-lucide="trash-2" style="width: 30px; height: 30px;"></i>
+                </div>
+                <h3 style="margin-bottom: 10px;">حذف المنشور؟</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">هل أنت متأكد من حذف هذا المنشور نهائياً؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" id="confirm-delete-btn" style="background: #ef4444; flex: 1;">حذف</button>
+                    <button class="btn btn-alt" id="cancel-delete-btn" style="flex: 1;">إلغاء</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container"></div>
+
         <!-- Settings Screen -->
         <div id="settings-screen" class="screen">
             <header style="display: flex; align-items: center; gap: 10px; padding: 15px 20px; border-bottom: 1px solid var(--border);">
@@ -1320,7 +1516,18 @@
             roomsList: document.getElementById('rooms-list'),
             chatMsgs: document.getElementById('chat-msgs'),
             modal: document.getElementById('create-modal'),
-            roomsLoading: document.getElementById('rooms-loading')
+            roomsLoading: document.getElementById('rooms-loading'),
+            toastContainer: document.getElementById('toast-container')
+        };
+
+        const showToast = (message, type = 'success') => {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            toast.innerHTML = `<i data-lucide="${icon}" style="width: 18px; height: 18px;"></i><span>${message}</span>`;
+            ui.toastContainer.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.remove(), 3000);
         };
 
         let isRoomsLoaded = false;
@@ -1729,6 +1936,9 @@
                 allPostsData = snap.val() || {};
                 postsLoading.style.display = 'none';
                 renderPosts();
+                if (activePostIdForComments) {
+                    renderComments();
+                }
             });
         };
 
@@ -1759,6 +1969,10 @@
                 
                 const userImg = user.img || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
                 
+                const isLiked = post.likes && post.likes[userSession.uid];
+                const commentsCount = post.comments ? Object.keys(post.comments).length : 0;
+                const isMyPost = post.uid === userSession.uid;
+
                 card.innerHTML = `
                     <div class="post-header">
                         <img src="${userImg}" class="post-user-img" alt="User">
@@ -1766,22 +1980,37 @@
                             <div class="post-user-name">${user.username}</div>
                             <div class="post-time">${timeStr}</div>
                         </div>
+                        ${isMyPost ? `
+                            <button class="post-menu-btn" onclick="togglePostMenu(event, '${post.id}')">
+                                <i data-lucide="more-vertical"></i>
+                            </button>
+                            <div class="post-dropdown" id="dropdown-${post.id}">
+                                <div class="post-dropdown-item" onclick="deletePost('${post.id}')">
+                                    <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                                    <span>حذف المنشور</span>
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                     <div class="post-content">${post.text}</div>
                     <div class="post-actions">
-                        <button class="post-action-btn" onclick="toggleLike('${post.id}')">
+                        <button class="post-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
                             <i data-lucide="heart"></i>
                             <span>${post.likesCount || 0}</span>
                         </button>
-                        <button class="post-action-btn">
+                        <button class="post-action-btn" onclick="openComments('${post.id}')">
                             <i data-lucide="message-circle"></i>
-                            <span>تعليق</span>
+                            <span>${commentsCount} تعليق</span>
                         </button>
                     </div>
                 `;
                 postsContainer.appendChild(card);
             });
             lucide.createIcons();
+        };
+
+        document.getElementById('post-text-input').onfocus = () => {
+            document.getElementById('publish-post-btn').style.display = 'block';
         };
 
         document.getElementById('publish-post-btn').onclick = async () => {
@@ -1805,21 +2034,169 @@
                     likesCount: 0
                 });
                 textInput.value = '';
-                textInput.style.height = '80px';
+                textInput.style.height = '45px';
+                btn.style.display = 'none';
             } catch (e) {
-                alert('فشل النشر: ' + e.message);
+                showToast('فشل النشر: ' + e.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerText = 'نشر في النيل';
             }
         };
 
-        window.toggleLike = (postId) => {
-            // Visual feedback for now as requested, or simple increment
-            const postRef = ref(db, `posts/${postId}/likesCount`);
-            update(ref(db, `posts/${postId}`), {
-                likesCount: increment(1)
+        window.toggleLike = async (postId) => {
+            if (!userSession) return;
+            const uid = userSession.uid;
+            const post = allPostsData[postId];
+            if (!post) return;
+
+            const postRef = ref(db, `posts/${postId}`);
+            const userLikeRef = ref(db, `posts/${postId}/likes/${uid}`);
+            
+            const alreadyLiked = post.likes && post.likes[uid];
+
+            if (alreadyLiked) {
+                // Unlike
+                await remove(userLikeRef);
+                await update(postRef, {
+                    likesCount: increment(-1)
+                });
+            } else {
+                // Like
+                await set(userLikeRef, true);
+                await update(postRef, {
+                    likesCount: increment(1)
+                });
+            }
+        };
+
+        window.togglePostMenu = (event, postId) => {
+            event.stopPropagation();
+            const dropdown = document.getElementById(`dropdown-${postId}`);
+            const isActive = dropdown.classList.contains('active');
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.post-dropdown').forEach(d => d.classList.remove('active'));
+            
+            if (!isActive) {
+                dropdown.classList.add('active');
+            }
+        };
+
+        // Close dropdowns on click outside
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.post-dropdown').forEach(d => d.classList.remove('active'));
+        });
+
+        window.deletePost = (postId) => {
+            const modal = document.getElementById('confirm-modal');
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            const cancelBtn = document.getElementById('cancel-delete-btn');
+            
+            modal.classList.add('active');
+            
+            confirmBtn.onclick = async () => {
+                confirmBtn.disabled = true;
+                confirmBtn.innerText = 'جاري الحذف...';
+                try {
+                    const postRef = ref(db, `posts/${postId}`);
+                    await remove(postRef);
+                    showToast('تم حذف المنشور بنجاح');
+                } catch (e) {
+                    showToast('فشل حذف المنشور: ' + e.message, 'error');
+                } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerText = 'حذف';
+                    modal.classList.remove('active');
+                }
+            };
+            
+            cancelBtn.onclick = () => {
+                modal.classList.remove('active');
+            };
+        };
+
+        let activePostIdForComments = null;
+
+        window.openComments = (postId) => {
+            activePostIdForComments = postId;
+            renderComments();
+            showModal('comments-modal');
+        };
+
+        const renderComments = () => {
+            const container = document.getElementById('comments-container');
+            const statsContainer = document.getElementById('comments-modal-stats');
+            container.innerHTML = '';
+            
+            const post = allPostsData[activePostIdForComments];
+            if (!post) return;
+
+            const likesCount = post.likesCount || 0;
+            const commentsCount = post.comments ? Object.keys(post.comments).length : 0;
+            
+            statsContainer.innerHTML = `
+                <span><i data-lucide="heart" style="width: 14px; height: 14px; vertical-align: middle; margin-left: 2px;"></i> ${likesCount}</span>
+                <span><i data-lucide="message-circle" style="width: 14px; height: 14px; vertical-align: middle; margin-left: 2px;"></i> ${commentsCount}</span>
+            `;
+            lucide.createIcons();
+
+            if (!post.comments) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">لا توجد تعليقات بعد.</p>';
+                return;
+            }
+
+            const comments = Object.keys(post.comments).map(id => ({ id, ...post.comments[id] }));
+            comments.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            comments.forEach(comment => {
+                const user = usersData[comment.uid] || { username: 'مستخدم', img: null };
+                const timeStr = comment.timestamp ? new Date(comment.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                
+                const item = document.createElement('div');
+                item.className = 'comment-item';
+                
+                const userImg = user.img || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+
+                item.innerHTML = `
+                    <img src="${userImg}" class="comment-user-img" alt="User">
+                    <div class="comment-content">
+                        <div class="comment-user-name">${user.username}</div>
+                        <div class="comment-text">${comment.text}</div>
+                        <div class="comment-time">${timeStr}</div>
+                    </div>
+                `;
+                container.appendChild(item);
             });
+            container.scrollTop = container.scrollHeight;
+        };
+
+        document.getElementById('submit-comment-btn').onclick = async () => {
+            const input = document.getElementById('comment-input');
+            const text = input.value.trim();
+            if (!text || !activePostIdForComments || !userSession) return;
+
+            const btn = document.getElementById('submit-comment-btn');
+            btn.disabled = true;
+
+            try {
+                const commentsRef = ref(db, `posts/${activePostIdForComments}/comments`);
+                await push(commentsRef, {
+                    uid: userSession.uid,
+                    text: text,
+                    timestamp: serverTimestamp()
+                });
+                input.value = '';
+            } catch (e) {
+                alert('فشل إضافة التعليق');
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        document.getElementById('close-comments-modal').onclick = () => {
+            document.getElementById('comments-modal').classList.remove('active');
+            activePostIdForComments = null;
         };
 
         const syncRooms = () => {
