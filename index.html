@@ -973,52 +973,299 @@
             fill: #ef4444;
         }
 
-        /* Comments Styles */
-        .comments-list {
+        /* Redesigned Comments Screen Styles */
+        .comments-header {
+            background: #1a1a1a;
+            color: white;
+            padding: 15px;
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 5px;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .comment-item {
+        .comments-header .icon-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .comments-header .icon-btn:active {
+            transform: scale(0.85);
+            opacity: 0.7;
+        }
+
+        .comments-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .comments-stats-row {
             display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 10px;
+            animation: commentPop 0.4s ease-out;
+        }
+
+        .comments-stats-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .comments-stats-item i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .comments-filter-bar {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 5px;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .comments-filter-bar:active {
+            opacity: 0.6;
+        }
+
+        .comment-bubble-container {
+            display: flex;
+            flex-direction: row-reverse;
             gap: 10px;
-            background: var(--bg);
-            padding: 10px;
-            border-radius: 15px;
-            animation: fadeIn 0.3s ease;
+            margin-bottom: 15px;
+            padding: 0 15px;
         }
 
-        .comment-user-img {
-            width: 32px;
-            height: 32px;
+        .comment-bubble-user-img {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             object-fit: cover;
+            flex-shrink: 0;
         }
 
-        .comment-content {
-            flex: 1;
+        .comment-bubble-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            max-width: 80%;
         }
 
-        .comment-user-name {
+        .comment-bubble {
+            background: #2a2a2a;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 18px;
+            border-top-right-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .comment-bubble-name {
             font-weight: 700;
             font-size: 0.85rem;
             margin-bottom: 2px;
+            color: #e0e0e0;
         }
 
-        .comment-text {
-            font-size: 0.9rem;
-            line-height: 1.4;
+        .comment-bubble-actions {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 15px;
+            margin-top: 5px;
+            font-size: 0.75rem;
+            color: #888;
+            padding-right: 5px;
         }
 
-        .comment-time {
+        .comment-bubble-action {
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .comment-bubble-action:hover {
+            color: white;
+        }
+
+        .view-replies-link {
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .view-replies-link::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #444;
+            margin-left: 10px;
+        }
+
+        @keyframes commentPop {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes likePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes indicatorSlide {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .comment-bubble-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-direction: row-reverse;
+            animation: commentPop 0.3s ease-out;
+        }
+
+        .comment-bubble-action {
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .comment-bubble-action:active {
+            transform: scale(0.9);
+            opacity: 0.7;
+        }
+
+        .comment-bubble-action.liked {
+            color: var(--primary);
+            animation: likePop 0.2s ease-out;
+        }
+
+        .comment-likes-count {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 10px;
             font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-top: 4px;
+            color: #ccc;
+            position: absolute;
+            bottom: -10px;
+            left: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .reply-indicator {
+            background: #222;
+            padding: 8px 15px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #aaa;
+            border-top: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .reply-indicator.active {
+            display: flex;
+            animation: indicatorSlide 0.3s ease-out;
+        }
+
+        .cancel-reply-btn {
+            cursor: pointer;
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        #submit-comment-btn-new, #back-from-comments {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #submit-comment-btn-new:active, #back-from-comments:active {
+            transform: scale(0.85);
+            opacity: 0.7;
+        }
+
+        #submit-comment-btn-new:disabled {
+            opacity: 0.3;
+            transform: scale(1);
+        }
+
+        .comment-input-bar {
+            background: #1a1a1a;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #333;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .comment-input-container {
+            flex: 1;
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .comment-input-container:focus-within {
+            background: #333;
+            border-color: var(--primary);
+        }
+
+        .comment-input-field {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .comment-input-field::placeholder {
+            color: #888;
+        }
+
+        .empty-comments-msg {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+            font-size: 1rem;
+        }
+
+        .comments-list-new {
+            flex: 1;
+            overflow-y: auto;
+            padding-top: 10px;
+            scrollbar-width: none;
         }
 
         .nile-btn {
@@ -1241,6 +1488,45 @@
             </div>
         </div>
 
+        <!-- Comments Screen -->
+        <div id="comments-screen" class="screen" style="background: #121212; flex-direction: column;">
+            <header class="comments-header">
+                <button class="icon-btn" id="back-from-comments" style="color: white;">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+                <h2 id="comments-header-title">منشور</h2>
+                <button class="icon-btn" style="color: white;">
+                    <i data-lucide="search"></i>
+                </button>
+            </header>
+
+            <div id="comments-stats-row" class="comments-stats-row">
+                <!-- Stats injected here -->
+            </div>
+
+            <div class="comments-filter-bar">
+                <span>الأكثر ملاءمة</span>
+                <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+            </div>
+
+            <div id="comments-list-new" class="comments-list-new">
+                <!-- Comments injected here -->
+            </div>
+
+            <div id="reply-indicator" class="reply-indicator">
+                <span>الرد على <span id="reply-target-name" style="color: white; font-weight: bold;"></span></span>
+                <span class="cancel-reply-btn" id="cancel-reply-btn">إلغاء</span>
+            </div>
+            <div class="comment-input-bar">
+                <div class="comment-input-container">
+                    <input type="text" id="comment-input-new" class="comment-input-field" placeholder="اكتب تعليقاً...">
+                </div>
+                <button class="icon-btn" id="submit-comment-btn-new" style="color: var(--primary); padding: 0;">
+                    <i data-lucide="send"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- Chat Screen -->
         <div id="chat-screen" class="screen">
             <header style="display: flex; align-items: center; gap: 10px; padding: 10px 20px;">
@@ -1392,29 +1678,6 @@
             </div>
         </div>
 
-        <!-- Comments Modal -->
-        <div class="modal" id="comments-modal">
-            <div class="modal-box" style="max-width: 400px; max-height: 85vh; display: flex; flex-direction: column;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-                    <h3 style="margin: 0;">التعليقات</h3>
-                    <div id="comments-modal-stats" style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 10px;">
-                        <!-- Stats injected here -->
-                    </div>
-                </div>
-                
-                <div id="comments-container" class="comments-list">
-                    <!-- Comments injected here -->
-                </div>
-
-                <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
-                    <textarea id="comment-input" placeholder="اكتب تعليقك هنا..." style="height: 60px; font-size: 0.9rem; margin-bottom: 10px;"></textarea>
-                    <button class="nile-btn" id="submit-comment-btn">إضافة تعليق</button>
-                </div>
-                
-                <button class="btn btn-alt" id="close-comments-modal" style="margin-top: 10px;">إغلاق</button>
-            </div>
-        </div>
-
         <!-- Confirm Delete Modal -->
         <div class="modal" id="confirm-modal">
             <div class="modal-box" style="max-width: 320px; text-align: center;">
@@ -1511,6 +1774,7 @@
             rooms: document.getElementById('rooms-screen'),
             feed: document.getElementById('feed-screen'),
             chat: document.getElementById('chat-screen'),
+            comments: document.getElementById('comments-screen'),
             settings: document.getElementById('settings-screen'),
             error: document.getElementById('auth-error'),
             roomsList: document.getElementById('rooms-list'),
@@ -1532,10 +1796,10 @@
 
         let isRoomsLoaded = false;
 
-        const screenOrder = ['splash', 'welcome', 'login', 'feed', 'rooms', 'chat', 'settings'];
+        const screenOrder = ['splash', 'welcome', 'login', 'feed', 'rooms', 'chat', 'comments', 'settings'];
         let currentActiveScreen = 'splash';
 
-        const switchScreen = (screenId) => {
+        const switchScreen = (screenId, instant = false) => {
             if (screenId === currentActiveScreen) return;
 
             const oldIdx = screenOrder.indexOf(currentActiveScreen);
@@ -1544,6 +1808,18 @@
 
             const oldScreen = ui[currentActiveScreen];
             const newScreen = ui[screenId];
+
+            if (instant) {
+                // Instant transition
+                screenOrder.forEach(sId => {
+                    const s = ui[sId];
+                    if (s) s.classList.remove('active', 'slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
+                });
+                newScreen.classList.add('active');
+                currentActiveScreen = screenId;
+                lucide.createIcons();
+                return;
+            }
 
             // Prepare new screen
             newScreen.classList.remove('active', 'slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
@@ -1807,7 +2083,7 @@
                 switchScreen('rooms');
             }
 
-            const filterType = normalizedType === 'all' ? 'all' : (normalizedType === 'my' ? 'my' : 'notif');
+            const filterType = ['all', 'my', 'joined', 'notif'].includes(normalizedType) ? normalizedType : 'all';
             
             // Update filter button appearance
             const filterBtn = document.getElementById('filter-joined-rooms');
@@ -1971,6 +2247,7 @@
                 
                 const isLiked = post.likes && post.likes[userSession.uid];
                 const commentsCount = post.comments ? Object.keys(post.comments).length : 0;
+                const sharesCount = post.sharesCount || 0;
                 const isMyPost = post.uid === userSession.uid;
 
                 card.innerHTML = `
@@ -2000,7 +2277,11 @@
                         </button>
                         <button class="post-action-btn" onclick="openComments('${post.id}')">
                             <i data-lucide="message-circle"></i>
-                            <span>${commentsCount} تعليق</span>
+                            <span>${commentsCount}</span>
+                        </button>
+                        <button class="post-action-btn">
+                            <i data-lucide="share-2"></i>
+                            <span>${sharesCount}</span>
                         </button>
                     </div>
                 `;
@@ -2031,7 +2312,9 @@
                     uid: userSession.uid,
                     text: text,
                     timestamp: serverTimestamp(),
-                    likesCount: 0
+                    likesCount: 0,
+                    sharesCount: 0,
+                    commentsCount: 0
                 });
                 textInput.value = '';
                 textInput.style.height = '45px';
@@ -2117,86 +2400,242 @@
         };
 
         let activePostIdForComments = null;
+        let activeReplyCommentId = null;
+        let activeReplyUserName = null;
 
         window.openComments = (postId) => {
             activePostIdForComments = postId;
-            renderComments();
-            showModal('comments-modal');
+            renderedCommentIds.clear();
+            cancelReply();
+            renderComments(true);
+            switchScreen('comments');
         };
 
-        const renderComments = () => {
-            const container = document.getElementById('comments-container');
-            const statsContainer = document.getElementById('comments-modal-stats');
-            container.innerHTML = '';
+        window.toggleCommentLike = async (postId, commentId) => {
+            if (!userSession) return;
+            const likeRef = ref(db, `posts/${postId}/comments/${commentId}/likes/${userSession.uid}`);
+            const post = allPostsData[postId];
+            const comment = post.comments[commentId];
+            const isLiked = comment.likes && comment.likes[userSession.uid];
+
+            try {
+                if (isLiked) {
+                    await remove(likeRef);
+                } else {
+                    await set(likeRef, true);
+                }
+            } catch (e) {
+                showToast('فشل تحديث الإعجاب', 'error');
+            }
+        };
+
+        window.setReplyTarget = (commentId, userName) => {
+            activeReplyCommentId = commentId;
+            activeReplyUserName = userName;
+            const indicator = document.getElementById('reply-indicator');
+            const targetName = document.getElementById('reply-target-name');
+            const input = document.getElementById('comment-input-new');
+
+            targetName.innerText = userName;
+            indicator.classList.add('active');
+            input.focus();
+            input.placeholder = `رد على ${userName}...`;
+        };
+
+        const cancelReply = () => {
+            activeReplyCommentId = null;
+            activeReplyUserName = null;
+            document.getElementById('reply-indicator').classList.remove('active');
+            document.getElementById('comment-input-new').placeholder = "اكتب تعليقاً...";
+        };
+
+        document.getElementById('cancel-reply-btn').onclick = cancelReply;
+
+        let renderedCommentIds = new Set();
+        let lastCommentCount = 0;
+        let lastActivePostId = null;
+
+        const renderComments = (forceScroll = false) => {
+            const container = document.getElementById('comments-list-new');
+            const statsContainer = document.getElementById('comments-stats-row');
+            const headerTitle = document.getElementById('comments-header-title');
             
             const post = allPostsData[activePostIdForComments];
-            if (!post) return;
+            if (!post) {
+                renderedCommentIds.clear();
+                return;
+            }
+
+            const commentsData = post.comments ? Object.keys(post.comments).map(id => ({ id, ...post.comments[id] })) : [];
+            const currentCommentCount = commentsData.length;
+            const isNewPost = activePostIdForComments !== lastActivePostId;
+            
+            if (isNewPost) {
+                renderedCommentIds.clear();
+            }
+
+            container.innerHTML = '';
+            
+            const author = usersData[post.uid] || { username: 'مستخدم' };
+            headerTitle.innerText = `منشور ${author.username}`;
 
             const likesCount = post.likesCount || 0;
             const commentsCount = post.comments ? Object.keys(post.comments).length : 0;
+            const sharesCount = post.sharesCount || 0;
             
             statsContainer.innerHTML = `
-                <span><i data-lucide="heart" style="width: 14px; height: 14px; vertical-align: middle; margin-left: 2px;"></i> ${likesCount}</span>
-                <span><i data-lucide="message-circle" style="width: 14px; height: 14px; vertical-align: middle; margin-left: 2px;"></i> ${commentsCount}</span>
+                <div class="comments-stats-item">
+                    <i data-lucide="share-2"></i>
+                    <span>${sharesCount}</span>
+                </div>
+                <div class="comments-stats-item">
+                    <i data-lucide="message-circle"></i>
+                    <span>${commentsCount}</span>
+                </div>
+                <div class="comments-stats-item">
+                    <i data-lucide="thumbs-up"></i>
+                    <span>${likesCount}</span>
+                </div>
             `;
             lucide.createIcons();
 
             if (!post.comments) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">لا توجد تعليقات بعد.</p>';
+                container.innerHTML = '<div class="empty-comments-msg">لا يوجد تعليق حتى الان</div>';
                 return;
             }
 
-            const comments = Object.keys(post.comments).map(id => ({ id, ...post.comments[id] }));
+            const comments = commentsData;
             comments.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
             comments.forEach(comment => {
                 const user = usersData[comment.uid] || { username: 'مستخدم', img: null };
                 const timeStr = comment.timestamp ? new Date(comment.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                
-                const item = document.createElement('div');
-                item.className = 'comment-item';
-                
                 const userImg = user.img || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+                
+                const commentLikes = comment.likes ? Object.keys(comment.likes).length : 0;
+                const isLikedByMe = comment.likes && userSession && comment.likes[userSession.uid];
 
+                const isNewComment = !renderedCommentIds.has(comment.id);
+                renderedCommentIds.add(comment.id);
+
+                const item = document.createElement('div');
+                item.className = 'comment-bubble-container';
+                if (!isNewComment) item.style.animation = 'none';
                 item.innerHTML = `
-                    <img src="${userImg}" class="comment-user-img" alt="User">
-                    <div class="comment-content">
-                        <div class="comment-user-name">${user.username}</div>
-                        <div class="comment-text">${comment.text}</div>
-                        <div class="comment-time">${timeStr}</div>
+                    <img src="${userImg}" class="comment-bubble-user-img" alt="User">
+                    <div class="comment-bubble-content">
+                        <div class="comment-bubble">
+                            <div class="comment-bubble-name">${user.username}</div>
+                            <div style="word-break: break-word;">${comment.text}</div>
+                            ${commentLikes > 0 ? `
+                                <div class="comment-likes-count">
+                                    <i data-lucide="thumbs-up" style="width: 10px; height: 10px; fill: var(--primary); color: var(--primary);"></i>
+                                    <span>${commentLikes}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="comment-bubble-actions">
+                            <span class="comment-bubble-action">${timeStr}</span>
+                            <span class="comment-bubble-action ${isLikedByMe ? 'liked' : ''}" onclick="toggleCommentLike('${activePostIdForComments}', '${comment.id}')">أعجبني</span>
+                            <span class="comment-bubble-action" onclick="setReplyTarget('${comment.id}', '${user.username}')">رد</span>
+                        </div>
+                        
+                        <!-- Replies -->
+                        <div class="replies-container" id="replies-${comment.id}"></div>
                     </div>
                 `;
                 container.appendChild(item);
+
+                // Render replies if any
+                if (comment.replies) {
+                    const repliesContainer = item.querySelector(`#replies-${comment.id}`);
+                    const replies = Object.keys(comment.replies).map(rid => ({ id: rid, ...comment.replies[rid] }));
+                    replies.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+                        replies.forEach(reply => {
+                            const rUser = usersData[reply.uid] || { username: 'مستخدم', img: null };
+                            const rUserImg = rUser.img || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+                            const rTimeStr = reply.timestamp ? new Date(reply.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+                            const isNewReply = !renderedCommentIds.has(reply.id);
+                            renderedCommentIds.add(reply.id);
+
+                            const rItem = document.createElement('div');
+                            rItem.className = 'reply-item-animated';
+                            rItem.style.display = 'flex';
+                            rItem.style.gap = '10px';
+                            rItem.style.marginTop = '10px';
+                            rItem.style.flexDirection = 'row-reverse';
+                            if (!isNewReply) rItem.style.animation = 'none';
+                            else rItem.style.animation = 'commentPop 0.3s ease-out';
+                            rItem.innerHTML = `
+                            <img src="${rUserImg}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" alt="User">
+                            <div style="flex: 1;">
+                                <div class="comment-bubble" style="padding: 8px 12px; font-size: 0.9rem;">
+                                    <div class="comment-bubble-name">${rUser.username}</div>
+                                    <div style="word-break: break-word;">${reply.text}</div>
+                                </div>
+                                <div class="comment-bubble-actions">
+                                    <span class="comment-bubble-action">${rTimeStr}</span>
+                                </div>
+                            </div>
+                        `;
+                        repliesContainer.appendChild(rItem);
+                    });
+                }
             });
-            container.scrollTop = container.scrollHeight;
+            lucide.createIcons();
+            
+            // Only scroll if it's a new post, a new comment was added, or forced
+            if (isNewPost || currentCommentCount > lastCommentCount || forceScroll) {
+                container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: isNewPost ? 'auto' : 'smooth'
+                });
+            }
+
+            lastCommentCount = currentCommentCount;
+            lastActivePostId = activePostIdForComments;
         };
 
-        document.getElementById('submit-comment-btn').onclick = async () => {
-            const input = document.getElementById('comment-input');
+        document.getElementById('back-from-comments').onclick = () => {
+            switchScreen('feed');
+            activePostIdForComments = null;
+        };
+
+        document.getElementById('submit-comment-btn-new').onclick = async () => {
+            const input = document.getElementById('comment-input-new');
             const text = input.value.trim();
             if (!text || !activePostIdForComments || !userSession) return;
 
-            const btn = document.getElementById('submit-comment-btn');
+            const btn = document.getElementById('submit-comment-btn-new');
             btn.disabled = true;
 
             try {
-                const commentsRef = ref(db, `posts/${activePostIdForComments}/comments`);
-                await push(commentsRef, {
-                    uid: userSession.uid,
-                    text: text,
-                    timestamp: serverTimestamp()
-                });
+                if (activeReplyCommentId) {
+                    // It's a reply
+                    const repliesRef = ref(db, `posts/${activePostIdForComments}/comments/${activeReplyCommentId}/replies`);
+                    await push(repliesRef, {
+                        uid: userSession.uid,
+                        text: text,
+                        timestamp: Date.now()
+                    });
+                    cancelReply();
+                } else {
+                    // It's a top-level comment
+                    const commentsRef = ref(db, `posts/${activePostIdForComments}/comments`);
+                    await push(commentsRef, {
+                        uid: userSession.uid,
+                        text: text,
+                        timestamp: Date.now()
+                    });
+                }
                 input.value = '';
             } catch (e) {
-                alert('فشل إضافة التعليق');
+                showToast('فشل إضافة التعليق', 'error');
             } finally {
                 btn.disabled = false;
             }
-        };
-
-        document.getElementById('close-comments-modal').onclick = () => {
-            document.getElementById('comments-modal').classList.remove('active');
-            activePostIdForComments = null;
         };
 
         const syncRooms = () => {
