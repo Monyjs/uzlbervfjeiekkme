@@ -975,8 +975,8 @@
 
         /* Redesigned Comments Screen Styles */
         .comments-header {
-            background: #1a1a1a;
-            color: white;
+            background: var(--nav-bg);
+            color: var(--text);
             padding: 15px;
             display: flex;
             align-items: center;
@@ -1005,7 +1005,7 @@
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border);
             margin-bottom: 10px;
             animation: commentPop 0.4s ease-out;
         }
@@ -1014,7 +1014,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            color: #aaa;
+            color: var(--text-muted);
             font-size: 0.9rem;
         }
 
@@ -1029,7 +1029,7 @@
             align-items: center;
             justify-content: flex-start;
             gap: 5px;
-            color: white;
+            color: var(--text);
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -1063,21 +1063,22 @@
         }
 
         .comment-bubble {
-            background: #2a2a2a;
-            color: white;
+            background: var(--received);
+            color: var(--text);
             padding: 10px 15px;
             border-radius: 18px;
             border-top-right-radius: 4px;
             font-size: 0.95rem;
             line-height: 1.4;
             position: relative;
+            box-shadow: 0 1px 2px var(--bubble-shadow);
         }
 
         .comment-bubble-name {
             font-weight: 700;
             font-size: 0.85rem;
             margin-bottom: 2px;
-            color: #e0e0e0;
+            color: var(--text);
         }
 
         .comment-bubble-actions {
@@ -1086,7 +1087,7 @@
             gap: 15px;
             margin-top: 5px;
             font-size: 0.75rem;
-            color: #888;
+            color: var(--text-muted);
             padding-right: 5px;
         }
 
@@ -1097,11 +1098,11 @@
         }
 
         .comment-bubble-action:hover {
-            color: white;
+            color: var(--primary);
         }
 
         .view-replies-link {
-            color: white;
+            color: var(--text);
             font-size: 0.85rem;
             font-weight: 600;
             margin-top: 5px;
@@ -1115,7 +1116,7 @@
             content: "";
             flex: 1;
             height: 1px;
-            background: #444;
+            background: var(--border);
             margin-left: 10px;
         }
 
@@ -1164,26 +1165,27 @@
             display: flex;
             align-items: center;
             gap: 2px;
-            background: #333;
+            background: var(--card);
             padding: 2px 6px;
             border-radius: 10px;
             font-size: 0.7rem;
-            color: #ccc;
+            color: var(--text-muted);
             position: absolute;
             bottom: -10px;
             left: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px var(--bubble-shadow);
+            border: 1px solid var(--border);
         }
 
         .reply-indicator {
-            background: #222;
+            background: var(--bg);
             padding: 8px 15px;
             display: none;
             align-items: center;
             justify-content: space-between;
             font-size: 0.85rem;
-            color: #aaa;
-            border-top: 1px solid #333;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
             transition: all 0.3s ease;
         }
 
@@ -1213,29 +1215,29 @@
         }
 
         .comment-input-bar {
-            background: #1a1a1a;
+            background: var(--nav-bg);
             padding: 10px 15px;
             display: flex;
             align-items: center;
             gap: 10px;
-            border-top: 1px solid #333;
+            border-top: 1px solid var(--border);
             position: sticky;
             bottom: 0;
         }
 
         .comment-input-container {
             flex: 1;
-            background: #2a2a2a;
+            background: var(--bg);
             border-radius: 20px;
             padding: 8px 15px;
             display: flex;
             align-items: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
+            border: 1px solid var(--border);
         }
 
         .comment-input-container:focus-within {
-            background: #333;
+            background: var(--received);
             border-color: var(--primary);
         }
 
@@ -1243,7 +1245,7 @@
             flex: 1;
             background: transparent;
             border: none;
-            color: white;
+            color: var(--text);
             font-size: 0.9rem;
             outline: none;
             padding: 0;
@@ -1256,7 +1258,7 @@
 
         .empty-comments-msg {
             text-align: center;
-            color: #666;
+            color: var(--text-muted);
             padding: 40px 20px;
             font-size: 1rem;
         }
@@ -1489,13 +1491,13 @@
         </div>
 
         <!-- Comments Screen -->
-        <div id="comments-screen" class="screen" style="background: #121212; flex-direction: column;">
+        <div id="comments-screen" class="screen" style="background: var(--bg); flex-direction: column;">
             <header class="comments-header">
-                <button class="icon-btn" id="back-from-comments" style="color: white;">
+                <button class="icon-btn" id="back-from-comments" style="color: var(--text);">
                     <i data-lucide="chevron-right"></i>
                 </button>
                 <h2 id="comments-header-title">منشور</h2>
-                <button class="icon-btn" style="color: white;">
+                <button class="icon-btn" style="color: var(--text);">
                     <i data-lucide="search"></i>
                 </button>
             </header>
@@ -1514,7 +1516,7 @@
             </div>
 
             <div id="reply-indicator" class="reply-indicator">
-                <span>الرد على <span id="reply-target-name" style="color: white; font-weight: bold;"></span></span>
+                <span>الرد على <span id="reply-target-name" style="color: var(--text); font-weight: bold;"></span></span>
                 <span class="cancel-reply-btn" id="cancel-reply-btn">إلغاء</span>
             </div>
             <div class="comment-input-bar">
@@ -2720,7 +2722,6 @@
             }
 
             if (currentFilter === 'notif') {
-                // Show DMs
                 const dmList = Object.keys(allDMsData).map(uid => ({ uid, ...allDMsData[uid] }));
                 // Sort by last message timestamp
                 dmList.sort((a, b) => (b.lastMessageTs || 0) - (a.lastMessageTs || 0));
@@ -2793,10 +2794,18 @@
                         }
                     });
                 }
+                lucide.createIcons();
+                attachRipples();
+                updateGlobalNotifBadge();
+                return; // Exit early for notif filter
             }
 
-            Object.keys(allRoomsData).forEach(id => {
-                const room = allRoomsData[id];
+            // Sort rooms by membersCount descending
+            const roomsArray = Object.keys(allRoomsData).map(id => ({ id, ...allRoomsData[id] }));
+            roomsArray.sort((a, b) => (b.membersCount || 0) - (a.membersCount || 0));
+
+            roomsArray.forEach(room => {
+                const id = room.id;
                 const myName = userSession.email.split('@')[0];
                 const isJoined = userJoinedRooms && userJoinedRooms[id];
                 const isOwner = room.owner === myName;
@@ -3073,62 +3082,61 @@
             const roomId = currentRoomId;
             const myUid = userSession.uid;
 
-            // Add to members
-            await set(ref(db, `room_members/${roomId}/${myUid}`), {
-                uid: myUid,
-                ts: serverTimestamp()
-            });
+            try {
+                // Add to members
+                await set(ref(db, `room_members/${roomId}/${myUid}`), {
+                    uid: myUid,
+                    ts: serverTimestamp()
+                });
 
-            // Track joined rooms for user
-            await set(ref(db, `user_joined_rooms/${myUid}/${roomId}`), true);
+                // Track joined rooms for user
+                await set(ref(db, `user_joined_rooms/${myUid}/${roomId}`), true);
 
-            // Increment count
-            const roomRef = ref(db, `rooms/${roomId}`);
-            onValue(roomRef, async (snap) => {
-                const room = snap.val();
-                if (room) {
-                    await update(roomRef, {
-                        membersCount: (room.membersCount || 0) + 1
-                    });
-                }
-            }, { onlyOnce: true });
+                // Increment count atomically
+                const roomRef = ref(db, `rooms/${roomId}`);
+                await update(roomRef, {
+                    membersCount: increment(1)
+                });
 
-            // Refresh chat view
-            startChat(roomId, allRoomsData[roomId].name, allRoomsData[roomId].img);
+                // Refresh chat view
+                startChat(roomId, allRoomsData[roomId].name, allRoomsData[roomId].img);
+            } catch (err) {
+                console.error("Error joining room:", err);
+            }
         };
 
         const leaveRoom = async () => {
             if (!currentRoomId || !userSession) return;
-            if (!confirm('هل أنت متأكد من الخروج من هذه الغرفة؟')) return;
-
+            
             const roomId = currentRoomId;
             const myUid = userSession.uid;
 
-            // Remove from members
-            await remove(ref(db, `room_members/${roomId}/${myUid}`));
+            try {
+                // Remove from members
+                await remove(ref(db, `room_members/${roomId}/${myUid}`));
 
-            // Remove from joined rooms tracker
-            await remove(ref(db, `user_joined_rooms/${myUid}/${roomId}`));
+                // Remove from joined rooms tracker
+                await remove(ref(db, `user_joined_rooms/${myUid}/${roomId}`));
 
-            // Decrement count
-            const roomRef = ref(db, `rooms/${roomId}`);
-            onValue(roomRef, async (snap) => {
-                const room = snap.val();
-                if (room) {
-                    await update(roomRef, {
-                        membersCount: Math.max(0, (room.membersCount || 1) - 1)
-                    });
-                }
-            }, { onlyOnce: true });
+                // Decrement count atomically
+                const roomRef = ref(db, `rooms/${roomId}`);
+                await update(roomRef, {
+                    membersCount: increment(-1)
+                });
 
-            hideModal('room-info-modal');
-            currentRoomId = null;
-            switchScreen('rooms');
+                hideModal('room-info-modal');
+                currentRoomId = null;
+                switchScreen('rooms');
+            } catch (err) {
+                console.error("Error leaving room:", err);
+            }
         };
 
         const openRoomInfoModal = (id) => {
             const room = allRoomsData[id];
             if (!room) return;
+            
+            currentRoomId = id;
 
             const infoImg = document.getElementById('info-room-img');
             const infoPlaceholder = document.getElementById('info-room-placeholder');
@@ -3242,6 +3250,10 @@
 
         const openEditRoomModal = (id) => {
             const room = allRoomsData[id];
+            if (!room) return;
+            
+            currentRoomId = id;
+
             document.getElementById('edit-room-name').value = room.name;
             document.getElementById('edit-room-readonly').checked = room.allowMessages !== false;
             document.getElementById('edit-room-code-display').innerText = room.code || id.substring(1, 7).toUpperCase();
@@ -3303,15 +3315,14 @@
 
         document.getElementById('delete-room-btn').onclick = async () => {
             if (!currentRoomId) return;
-            if (confirm('هل أنت متأكد من حذف هذه الغرفة نهائياً؟')) {
-                const rRef = ref(db, `rooms/${currentRoomId}`);
-                const mRef = ref(db, `messages/${currentRoomId}`);
-                await remove(rRef);
-                await remove(mRef);
-                document.getElementById('edit-room-modal').style.display = 'none';
-                switchScreen('rooms');
-                alert('تم حذف الغرفة بنجاح');
-            }
+            
+            const rRef = ref(db, `rooms/${currentRoomId}`);
+            const mRef = ref(db, `messages/${currentRoomId}`);
+            await remove(rRef);
+            await remove(mRef);
+            hideModal('edit-room-modal');
+            switchScreen('rooms');
+            alert('تم حذف الغرفة بنجاح');
         };
 
         document.getElementById('copy-room-code').onclick = () => {
